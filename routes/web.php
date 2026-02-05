@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/api/trainings/{training}', [TrainingController::class, 'update'])->name('api.trainings.update');
     Route::delete('/api/trainings/{training}', [TrainingController::class, 'destroy'])->name('api.trainings.destroy');
     Route::post('/api/trainings/{training}/attach', [TrainingController::class, 'attachUsers'])->name('api.trainings.attach');
+    Route::post('/api/trainings/import', [TrainingController::class, 'import'])->name('api.trainings.import');
     Route::delete('/api/trainings/{training}/users/{user}', [TrainingController::class, 'detachUser'])->name('api.trainings.detach');
 
     // My trainings (user self-service: add training/seminar to own record)

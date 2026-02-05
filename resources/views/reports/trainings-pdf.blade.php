@@ -18,7 +18,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>{{ $appName }}</h1>
+        <h1>Training Tracker</h1>
         <p>Training / Seminar Attendance Report</p>
     </div>
     <div class="meta">
@@ -64,7 +64,7 @@
         </tbody>
     </table>
     <div class="footer">
-        {{ $appName }} — Confidential. Generated on {{ now()->format('Y-m-d H:i') }}.
+        Training Tracker — Confidential. Generated on {{ now()->format('Y-m-d H:i') }}.
     </div>
 </body>
 </html>

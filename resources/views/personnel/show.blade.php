@@ -34,6 +34,7 @@
                 <div class="d-flex gap-1">
                     <a href="{{ route('reports.pdf', ['user_id' => $user->id]) }}" class="btn btn-deped btn-sm"><i class="bi bi-file-pdf me-1"></i> Print PDF</a>
                     <a href="{{ route('reports.excel', ['user_id' => $user->id]) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-earmark-excel me-1"></i> Export Excel</a>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportExcel"><i class="bi bi-upload me-1"></i> Import Excel</button>
                 </div>
             </div>
         </div>
@@ -126,4 +127,87 @@
         </div>
     </div>
 </div>
+
+{{-- Import Excel modal (trainings for this personnel only) --}}
+<div class="modal fade" id="modalImportExcel" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Trainings from Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-3">Import trainings from an Excel file and assign them to <strong>{{ $user->name }}</strong>. Columns: Title, Type, Provider, Venue, Start Date, End Date, Hours, Attended Date, Remarks.</p>
+                <div class="mb-2">
+                    <label class="form-label">Excel file (.xlsx, .xls) <span class="text-danger">*</span></label>
+                    <input type="file" id="import-excel-file" class="form-control" accept=".xlsx,.xls">
+                    <div id="import-excel-errors" class="invalid-feedback d-none"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-deped" id="btn-import-excel"><span class="btn-text">Import</span><span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+(function() {
+    const baseUrl = '{{ url("/") }}';
+    const token = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '';
+    const userId = {{ $user->id }};
+
+    document.getElementById('btn-import-excel').addEventListener('click', async function(ev) {
+        ev.preventDefault();
+        const fileInput = document.getElementById('import-excel-file');
+        const btn = document.getElementById('btn-import-excel');
+        const btnText = btn.querySelector('.btn-text');
+        const spinner = btn.querySelector('.spinner-border');
+        const errEl = document.getElementById('import-excel-errors');
+
+        if (!fileInput.files || !fileInput.files[0]) {
+            alert('Please select an Excel file.');
+            return;
+        }
+        errEl.classList.add('d-none');
+        btn.disabled = true;
+        btnText.classList.add('d-none');
+        spinner.classList.remove('d-none');
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('user_ids[]', userId);
+        formData.append('_token', token);
+
+        try {
+            const r = await fetch(baseUrl + '/api/trainings/import', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
+                body: formData
+            });
+            const json = await r.json().catch(function() { return {}; });
+            if (r.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalImportExcel')).hide();
+                alert(json.message || 'Import completed.');
+                window.location.reload();
+            } else {
+                var msg = json.message || 'Import failed.';
+                var errList = json.errors ? (Array.isArray(json.errors) ? json.errors.join('\n') : Object.values(json.errors).flat().join('\n')) : '';
+                errEl.textContent = errList || msg;
+                errEl.classList.remove('d-none');
+                alert(msg + (errList ? '\n\n' + errList : ''));
+            }
+        } catch (e) {
+            alert('Error: ' + (e.message || 'Please try again.'));
+        } finally {
+            btn.disabled = false;
+            btnText.classList.remove('d-none');
+            spinner.classList.add('d-none');
+        }
+    });
+})();
+</script>
+@endpush
 @endsection

@@ -32,7 +32,6 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
                 'End Date',
                 'Hours',
                 'Attended Date',
-                'Remarks',
             ];
         }
         return [
@@ -47,7 +46,6 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
             'End Date',
             'Hours',
             'Attended Date',
-            'Remarks',
         ];
     }
 
@@ -88,7 +86,6 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
             $training->end_date?->format('Y-m-d'),
             $training->hours,
             $pivot && $pivot->attended_date ? (\Carbon\Carbon::parse($pivot->attended_date)->format('Y-m-d')) : '-',
-            $pivot?->remarks ?? '',
         ];
     }
 
@@ -106,7 +103,6 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
                 $t->end_date?->format('Y-m-d'),
                 $t->hours,
                 $t->pivot && $t->pivot->attended_date ? (\Carbon\Carbon::parse($t->pivot->attended_date)->format('Y-m-d')) : '',
-                $t->pivot?->remarks ?? '',
             ];
         }
 

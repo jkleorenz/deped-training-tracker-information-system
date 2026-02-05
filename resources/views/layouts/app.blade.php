@@ -236,6 +236,12 @@
                 <button type="button" class="menu-toggle d-lg-none" id="sidebarToggle" aria-label="Toggle menu">
                     <i class="bi bi-list"></i>
                 </button>
+                <div class="d-flex align-items-center gap-3 flex-wrap ms-2">
+                    <span class="badge bg-light text-dark border d-flex align-items-center gap-2 px-3 py-2">
+                        <i class="bi bi-calendar-event text-primary"></i>
+                        <span class="fw-semibold">{{ now()->format('F d, Y') }}</span>
+                    </span>
+                </div>
                 <div class="header-actions ms-auto">
                     <div class="dropdown">
                         <button class="user-dropdown dropdown-toggle border-0 bg-transparent" type="button" data-bs-toggle="dropdown" aria-expanded="false">

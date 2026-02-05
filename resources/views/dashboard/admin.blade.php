@@ -113,9 +113,9 @@
             </a>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
-            <a href="{{ route('reports.pdf') }}" class="quick-action-tile">
-                <div class="tile-icon"><i class="bi bi-file-pdf"></i></div>
-                <span class="tile-label">Print PDF report</span>
+            <a href="{{ route('trainings.manage') }}" class="quick-action-tile">
+                <div class="tile-icon"><i class="bi bi-upload"></i></div>
+                <span class="tile-label">Import from Excel</span>
             </a>
         </div>
     </div>

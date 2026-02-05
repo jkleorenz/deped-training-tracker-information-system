@@ -8,7 +8,12 @@
         <h4 class="page-title mb-1">Manage Trainings & Seminars</h4>
         <p class="text-muted small mb-0">Add, edit, and assign personnel to trainings.</p>
     </div>
-    <button type="button" class="btn btn-deped" data-bs-toggle="modal" data-bs-target="#modalAddTraining"><i class="bi bi-plus-lg me-1"></i> Add Training</button>
+    <div class="d-flex align-items-center gap-3 flex-wrap justify-content-end">
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalImport"><i class="bi bi-upload me-1"></i> Import from Excel</button>
+            <button type="button" class="btn btn-deped" data-bs-toggle="modal" data-bs-target="#modalAddTraining"><i class="bi bi-plus-lg me-1"></i> Add Training</button>
+        </div>
+    </div>
 </div>
 <div class="card">
     <div class="card-body">
@@ -158,6 +163,35 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalImport" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Trainings from Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-3">Upload an Excel file with columns: Title, Type, Provider, Venue, Start Date, End Date, Hours, Attended Date, Remarks. All rows will be imported and assigned to the selected user(s).</p>
+                <div class="mb-3">
+                    <label class="form-label">Select user(s) <span class="text-danger">*</span></label>
+                    <select id="import-user-ids" class="form-select" multiple size="8">
+                    </select>
+                    <small class="text-muted">Hold Ctrl (or Cmd on Mac) to select multiple.</small>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Excel file (.xlsx, .xls) <span class="text-danger">*</span></label>
+                    <input type="file" id="import-file" class="form-control" accept=".xlsx,.xls" required>
+                    <div id="import-errors" class="invalid-feedback d-none"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-deped" id="btn-do-import"><span class="btn-text">Import</span><span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span></button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="modalAssign" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -186,7 +220,8 @@
 <script>
 (function() {
     const baseUrl = '{{ url("/") }}';
-    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    const token = meta ? meta.getAttribute('content') : '';
     let assignTrainingId = null;
 
     function headers() {
@@ -199,9 +234,18 @@
     }
 
     async function loadTrainings() {
-        const r = await fetch(baseUrl + '/api/trainings', { headers: { 'Accept': 'application/json' } });
-        const json = await r.json();
-        return json.data || [];
+        try {
+            const r = await fetch(baseUrl + '/api/trainings', { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+            const json = await r.json().catch(() => ({}));
+            if (!r.ok) {
+                console.error('Trainings load failed', r.status, json);
+                return [];
+            }
+            return json.data || [];
+        } catch (err) {
+            console.error('Trainings load error', err);
+            return [];
+        }
     }
 
     async function loadPersonnel() {
@@ -211,16 +255,17 @@
     }
 
     function renderTrainings(list) {
+        const safeList = Array.isArray(list) ? list : [];
         const wrap = document.getElementById('trainings-wrap');
         const loading = document.getElementById('trainings-loading');
         const tbody = document.getElementById('trainings-tbody');
         loading.classList.add('d-none');
         wrap.classList.remove('d-none');
-        if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-journal-check display-5 d-block mb-2 opacity-50"></i><p class="mb-0">No trainings yet.</p><p class="small mb-0 mt-1">Click "Add Training" to create one.</p></td></tr>';
+        if (!safeList.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-journal-check display-5 d-block mb-2 opacity-50"></i><p class="mb-0">No trainings yet.</p><p class="small mb-0 mt-1">Click "Add Training" to create one.</p></td></tr>';
             return;
         }
-        tbody.innerHTML = list.map(t => `
+        tbody.innerHTML = safeList.map(t => `
             <tr>
                 <td>${escapeHtml(t.title)}</td>
                 <td>${escapeHtml(t.type ? t.type.charAt(0).toUpperCase() + t.type.slice(1).toLowerCase() : '—')}</td>
@@ -366,6 +411,87 @@
             renderTrainings(list);
         } catch (e) {
             alert('Error saving training.');
+        }
+    });
+
+    document.getElementById('modalImport').addEventListener('show.bs.modal', async function() {
+        const sel = document.getElementById('import-user-ids');
+        const personnel = await loadPersonnel();
+        sel.innerHTML = personnel.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (${escapeHtml(p.employee_id || p.email)})</option>`).join('');
+        document.getElementById('import-file').value = '';
+        document.getElementById('import-errors').classList.add('d-none');
+    });
+
+    document.getElementById('btn-do-import').addEventListener('click', async function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const fileInput = document.getElementById('import-file');
+        const importUserIdsEl = document.getElementById('import-user-ids');
+        const userIds = importUserIdsEl ? Array.from(importUserIdsEl.selectedOptions).map(function(o) { return o.value; }) : [];
+        const btn = document.getElementById('btn-do-import');
+        const btnText = btn ? btn.querySelector('.btn-text') : null;
+        const spinner = btn ? btn.querySelector('.spinner-border') : null;
+        const errEl = document.getElementById('import-errors');
+
+        if (!userIds.length) {
+            alert('Please select at least one user.');
+            return;
+        }
+        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+            alert('Please select an Excel file.');
+            return;
+        }
+
+        if (errEl) errEl.classList.add('d-none');
+        btn.disabled = true;
+        if (btnText) btnText.classList.add('d-none');
+        if (spinner) spinner.classList.remove('d-none');
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        userIds.forEach(function(id) { formData.append('user_ids[]', id); });
+        formData.append('_token', token);
+
+        const importHeaders = {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': token
+        };
+
+        try {
+            const r = await fetch(baseUrl + '/api/trainings/import', {
+                method: 'POST',
+                headers: importHeaders,
+                body: formData
+            });
+            const json = await r.json().catch(function() { return {}; });
+            if (r.ok) {
+                const modalEl = document.getElementById('modalImport');
+                if (modalEl && bootstrap.Modal.getInstance(modalEl)) bootstrap.Modal.getInstance(modalEl).hide();
+                const list = await loadTrainings();
+                renderTrainings(list);
+                alert(json.message || 'Import completed.');
+            } else {
+                const msg = json.message || 'Import failed.';
+                let errList = '';
+                if (json.errors) {
+                    if (Array.isArray(json.errors)) errList = json.errors.join('\n');
+                    else errList = Object.values(json.errors).flat().join('\n');
+                }
+                if (errEl) {
+                    errEl.textContent = errList || msg;
+                    errEl.classList.remove('d-none');
+                }
+                alert(msg + (errList ? '\n\n' + errList : ''));
+            }
+        } catch (e) {
+            console.error('Import error', e);
+            alert('Error: ' + (e.message || 'Please try again.'));
+        } finally {
+            btn.disabled = false;
+            if (btnText) btnText.classList.remove('d-none');
+            if (spinner) spinner.classList.add('d-none');
         }
     });
 
