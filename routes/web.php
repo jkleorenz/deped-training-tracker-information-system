@@ -1,0 +1,62 @@
+<?php
+
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MyTrainingController;
+use App\Http\Controllers\PersonnelController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\TrainingController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/', function () {
+    return redirect()->route('login');
+});
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    // Personnel (admin: list + profile with trainings)
+    Route::get('/personnel', [PersonnelController::class, 'index'])->name('personnel.index')->middleware('role:admin');
+    Route::get('/personnel/create', [AuthController::class, 'showCreatePersonnelForm'])->name('personnel.create')->middleware('role:admin');
+    Route::post('/personnel', [AuthController::class, 'storePersonnel'])->name('personnel.store')->middleware('role:admin');
+    Route::get('/personnel/{user}', [PersonnelController::class, 'show'])->name('personnel.show')->middleware('role:admin');
+    Route::get('/api/personnel', [PersonnelController::class, 'list'])->name('api.personnel.list');
+    Route::get('/api/personnel/{user}/trainings', [PersonnelController::class, 'trainings'])->name('api.personnel.trainings');
+
+    // Trainings management page (admin only)
+    Route::get('/trainings', [TrainingController::class, 'manage'])->name('trainings.manage')->middleware('role:admin');
+    // Trainings CRUD (admin only)
+    Route::get('/api/trainings', [TrainingController::class, 'index'])->name('api.trainings.index');
+    Route::get('/api/trainings/{training}', [TrainingController::class, 'show'])->name('api.trainings.show');
+    Route::post('/api/trainings', [TrainingController::class, 'store'])->name('api.trainings.store');
+    Route::put('/api/trainings/{training}', [TrainingController::class, 'update'])->name('api.trainings.update');
+    Route::delete('/api/trainings/{training}', [TrainingController::class, 'destroy'])->name('api.trainings.destroy');
+    Route::post('/api/trainings/{training}/attach', [TrainingController::class, 'attachUsers'])->name('api.trainings.attach');
+    Route::delete('/api/trainings/{training}/users/{user}', [TrainingController::class, 'detachUser'])->name('api.trainings.detach');
+
+    // My trainings (user self-service: add training/seminar to own record)
+    Route::get('/api/my/record/trainings', [MyTrainingController::class, 'myRecord'])->name('api.my.record.trainings');
+    Route::put('/api/my/record/trainings/{training}', [MyTrainingController::class, 'updatePivot'])->name('api.my.record.trainings.update');
+    Route::delete('/api/my/record/trainings/{training}', [MyTrainingController::class, 'detach'])->name('api.my.record.trainings.detach');
+    Route::get('/api/my/trainings', [MyTrainingController::class, 'index'])->name('api.my.trainings.index');
+    Route::post('/api/my/trainings/attach', [MyTrainingController::class, 'attach'])->name('api.my.trainings.attach');
+    Route::post('/api/my/trainings', [MyTrainingController::class, 'store'])->name('api.my.trainings.store');
+
+    // Reports
+    Route::get('/reports/excel', [ReportController::class, 'excel'])->name('reports.excel');
+    Route::get('/reports/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
+});
