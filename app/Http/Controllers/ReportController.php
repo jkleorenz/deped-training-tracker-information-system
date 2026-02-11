@@ -105,7 +105,7 @@ class ReportController extends Controller
             $reportUser = $authUser;
         }
 
-        $reportUser->load('personalDataSheet');
+        $reportUser->load(['personalDataSheet.civilServiceEligibilities', 'personalDataSheet.workExperiences']);
         $pds = $reportUser->personalDataSheet;
 
         $pdf = Pdf::loadView('reports.pds-pdf', [
@@ -114,6 +114,8 @@ class ReportController extends Controller
         ]);
 
         $pdf->setPaper('A4', 'portrait');
+        $pdf->setOption('footer-right', 'CS FORM 212 (Revised 2025), Page [page] of [topage]');
+        $pdf->setOption('footer-font-size', 7);
 
         return $pdf->stream('personal_data_sheet_' . $reportUser->id . '.pdf', ['Attachment' => false]);
     }

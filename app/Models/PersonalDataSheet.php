@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PersonalDataSheet extends Model
 {
@@ -50,6 +51,52 @@ class PersonalDataSheet extends Model
         'telephone',
         'mobile',
         'email_address',
+        // Section II. Family Background
+        'spouse_surname',
+        'spouse_first_name',
+        'spouse_middle_name',
+        'spouse_occupation',
+        'spouse_employer_business_name',
+        'spouse_business_address',
+        'spouse_telephone',
+        'children_names',
+        'father_surname',
+        'father_first_name',
+        'father_middle_name',
+        'mother_surname',
+        'mother_first_name',
+        'mother_middle_name',
+        // Section III. Educational Background
+        'elem_school',
+        'elem_degree_course',
+        'elem_period_from',
+        'elem_period_to',
+        'elem_highest_level_units',
+        'elem_scholarship_honors',
+        'secondary_school',
+        'secondary_degree_course',
+        'secondary_period_from',
+        'secondary_period_to',
+        'secondary_highest_level_units',
+        'secondary_scholarship_honors',
+        'voc_school',
+        'voc_degree_course',
+        'voc_period_from',
+        'voc_period_to',
+        'voc_highest_level_units',
+        'voc_scholarship_honors',
+        'college_school',
+        'college_degree_course',
+        'college_period_from',
+        'college_period_to',
+        'college_highest_level_units',
+        'college_scholarship_honors',
+        'grad_school',
+        'grad_degree_course',
+        'grad_period_from',
+        'grad_period_to',
+        'grad_highest_level_units',
+        'grad_scholarship_honors',
     ];
 
     protected $casts = [
@@ -62,5 +109,15 @@ class PersonalDataSheet extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function civilServiceEligibilities(): HasMany
+    {
+        return $this->hasMany(CivilServiceEligibility::class)->orderBy('sort_order');
+    }
+
+    public function workExperiences(): HasMany
+    {
+        return $this->hasMany(WorkExperience::class)->orderBy('sort_order');
     }
 }

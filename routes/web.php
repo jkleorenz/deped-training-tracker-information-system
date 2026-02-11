@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/personnel/{user}', [PersonnelController::class, 'show'])->name('personnel.show')->middleware('role:admin,sub-admin');
     Route::get('/personnel/{user}/pds', [PdsController::class, 'edit'])->name('personnel.pds.edit')->middleware('role:admin,sub-admin');
     Route::post('/personnel/{user}/pds', [PdsController::class, 'update'])->name('personnel.pds.update')->middleware('role:admin,sub-admin');
+    Route::post('/personnel/{user}/pds/draft', [PdsController::class, 'storeDraft'])->name('personnel.pds.draft')->middleware('role:admin,sub-admin');
     Route::get('/api/personnel', [PersonnelController::class, 'list'])->name('api.personnel.list');
     Route::get('/api/personnel/{user}/trainings', [PersonnelController::class, 'trainings'])->name('api.personnel.trainings');
 
@@ -72,6 +73,7 @@ Route::middleware('auth')->group(function () {
     // Personal Data Sheet (own) — all authenticated users
     Route::get('/pds', [PdsController::class, 'edit'])->name('pds.edit');
     Route::post('/pds', [PdsController::class, 'update'])->name('pds.update');
+    Route::post('/pds/draft', [PdsController::class, 'storeDraft'])->name('pds.draft');
 
     // Reports
     Route::get('/reports/excel', [ReportController::class, 'excel'])->name('reports.excel');
