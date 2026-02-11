@@ -4,15 +4,21 @@
 
 @push('styles')
 <style>
-.dashboard-personnel .card-header.card-header-green { background-color: #1e5aa8 !important; color: #fff; }
+.dashboard-personnel .card-header.card-header-green { background-color: #1E35FF !important; color: #fff; }
 .dashboard-personnel .card-header.card-header-green .mb-0 { color: #fff; }
 .dashboard-personnel .card-body { padding: 1.25rem 1.25rem; }
 .dashboard-personnel .table td { padding: 0.75rem 0.85rem; vertical-align: middle; }
 .dashboard-personnel .table thead th { padding: 0.75rem 0.85rem; white-space: nowrap; }
 .dashboard-personnel .card-hover { transition: box-shadow 0.2s ease; }
 .dashboard-personnel .card-hover:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-.dashboard-personnel .stat-card-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(30, 90, 168, 0.12); color: var(--deped-primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
+.dashboard-personnel .stat-card-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(30, 53, 255, 0.12); color: var(--deped-primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
 .dashboard-personnel .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--deped-primary); }
+/* Action buttons: icon + text side-by-side, vertically centered */
+.dashboard-personnel .d-flex.justify-content-between.mb-4 .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
 </style>
 @endpush
 
@@ -25,81 +31,15 @@
         </div>
         <div>
             <a href="{{ route('reports.excel') }}" class="btn btn-outline-secondary btn-sm me-1"><i class="bi bi-file-earmark-excel me-1"></i> Export Excel</a>
-            <a href="{{ route('reports.pdf') }}" class="btn btn-deped btn-sm"><i class="bi bi-file-pdf me-1"></i> Print PDF</a>
-        </div>
-    </div>
-
-    <div class="row g-3">
-        <div class="col-md-4">
-            <div class="card h-100 card-hover">
-                <div class="card-body d-flex align-items-start gap-3">
-                    <div class="stat-card-icon flex-shrink-0"><i class="bi bi-journal-check"></i></div>
-                    <div class="min-w-0">
-                        <h6 class="text-muted mb-1">Trainings / Seminars</h6>
-                        <p class="mb-0 stat-number" id="stat-my-trainings">{{ $trainings->count() }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 card-hover">
-                <div class="card-body d-flex align-items-start gap-3">
-                    <div class="stat-card-icon flex-shrink-0"><i class="bi bi-person-badge"></i></div>
-                    <div class="min-w-0">
-                        <h6 class="text-muted mb-1">Employee ID</h6>
-                        <p class="mb-0 fw-semibold">{{ $user->employee_id ?? '—' }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 card-hover">
-                <div class="card-body d-flex align-items-start gap-3">
-                    <div class="stat-card-icon flex-shrink-0"><i class="bi bi-building"></i></div>
-                    <div class="min-w-0">
-                        <h6 class="text-muted mb-1">Department</h6>
-                        <p class="mb-0 fw-semibold">{{ $user->department ?? '—' }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- My info card: same green-header section as personnel profile --}}
-    <div class="card mt-4">
-        <div class="card-header card-header-green py-2">
-            <h6 class="mb-0">Personnel info</h6>
-        </div>
-        <div class="card-body">
-            <dl class="row mb-0 small">
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">Name</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->name }}</dd>
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">Email</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->email }}</dd>
-                @if($user->employee_id)
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">Employee ID</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->employee_id }}</dd>
-                @endif
-                @if($user->designation)
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">Designation</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->designation }}</dd>
-                @endif
-                @if($user->department)
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">Department</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->department }}</dd>
-                @endif
-                @if($user->school)
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">School / Office</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->school }}</dd>
-                @endif
-            </dl>
+            <a href="{{ route('reports.pdf') }}" class="btn btn-deped btn-sm me-1" target="_blank"><i class="bi bi-file-pdf me-1"></i> Print STA</a>
+            <a href="{{ route('reports.pds-pdf') }}" class="btn btn-deped btn-sm" target="_blank"><i class="bi bi-person-vcard me-1"></i> Print PDS</a>
         </div>
     </div>
 
     {{-- Seminars & trainings attended: same green-header card as personnel profile --}}
     <div class="card mt-3">
         <div class="card-header card-header-green py-2 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">Seminars & trainings attended</h6>
+            <h6 class="mb-0">Seminars & Trainings Attended</h6>
             <button type="button" class="btn btn-light btn-sm py-1" data-bs-toggle="modal" data-bs-target="#modalAddMyTraining" title="Add training or seminar to your record">
                 <i class="bi bi-plus-lg"></i> Add training / seminar
             </button>

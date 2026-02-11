@@ -12,6 +12,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     public const ROLE_ADMIN = 'admin';
+    public const ROLE_SUB_ADMIN = 'sub-admin';
     public const ROLE_PERSONNEL = 'personnel';
 
     /**
@@ -55,9 +56,20 @@ class User extends Authenticatable
         return $this->role === self::ROLE_ADMIN;
     }
 
+    public function isSubAdmin(): bool
+    {
+        return $this->role === self::ROLE_SUB_ADMIN;
+    }
+
     public function isPersonnel(): bool
     {
         return $this->role === self::ROLE_PERSONNEL;
+    }
+
+    /** Admin or sub-admin (mini admin). */
+    public function isAdminOrSubAdmin(): bool
+    {
+        return $this->isAdmin() || $this->isSubAdmin();
     }
 
     /**
@@ -76,5 +88,13 @@ class User extends Authenticatable
     public function userTrainings()
     {
         return $this->hasMany(UserTraining::class);
+    }
+
+    /**
+     * Personal Data Sheet (CS Form 212) — one per user.
+     */
+    public function personalDataSheet()
+    {
+        return $this->hasOne(PersonalDataSheet::class);
     }
 }

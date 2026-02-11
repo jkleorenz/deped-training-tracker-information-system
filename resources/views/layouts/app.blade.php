@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name'))</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --deped-primary: #1e5aa8;
-            --deped-primary-light: #2563eb;
+            --deped-primary: #1E35FF;
+            --deped-primary-light: #4d5fff;
             --deped-accent: #93c5fd;
             --sidebar-width: 260px;
             --header-height: 64px;
@@ -43,6 +44,9 @@
             display: flex;
             flex-direction: column;
             border-right: 1px solid #eee;
+            box-shadow: 4px 0 16px rgba(0, 0, 0, 0.06), 2px 0 6px rgba(0, 0, 0, 0.04);
+            position: relative;
+            z-index: 2;
         }
         .sidebar-brand {
             padding: 1.5rem 1.25rem;
@@ -77,7 +81,7 @@
         .sidebar-nav a.active {
             background: var(--deped-primary);
             color: #fff;
-            box-shadow: 0 2px 8px rgba(30, 90, 168, 0.35);
+            box-shadow: 0 2px 8px rgba(30, 53, 255, 0.35);
         }
         .sidebar-nav a.active i { opacity: 1; }
         .sidebar-footer {
@@ -118,6 +122,9 @@
             border-bottom: 1px solid #eee;
             background: #fff;
             flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+            position: relative;
+            z-index: 1;
         }
         .top-header .header-actions {
             display: flex;
@@ -163,7 +170,7 @@
         .card { border: none; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: box-shadow 0.2s ease; }
         .btn-deped { background: var(--deped-primary); color: #fff; border: none; border-radius: 12px; transition: background 0.2s ease; }
         .btn-deped:hover { background: var(--deped-primary-light); color: #fff; }
-        .btn-deped:focus-visible, .form-control:focus, .form-select:focus { box-shadow: 0 0 0 0.2rem rgba(30, 90, 168, 0.35); outline: none; }
+        .btn-deped:focus-visible, .form-control:focus, .form-select:focus { box-shadow: 0 0 0 0.2rem rgba(30, 53, 255, 0.35); outline: none; }
         .table { border-radius: 12px; overflow: hidden; }
         .table th { background-color: #f8fafc; font-weight: 600; }
         .personnel-row { cursor: pointer; }
@@ -202,14 +209,18 @@
         <aside class="sidebar" id="sidebar">
             <a class="sidebar-brand" href="{{ route('dashboard') }}">
                 <img src="{{ asset('images/deped-maasin-logo.png') }}" alt="{{ config('app.name') }}">
-                <span>Training Tracker</span>
+                <span>Information System</span>
             </a>
             <nav class="sidebar-nav">
                 <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <i class="bi bi-grid-1x2"></i>
                     <span>Dashboard</span>
                 </a>
-                @if(auth()->user()->isAdmin())
+                <a href="{{ route('pds.edit') }}" class="{{ request()->routeIs('pds.*') ? 'active' : '' }}">
+                    <i class="bi bi-person-vcard"></i>
+                    <span>Personal Data Sheet</span>
+                </a>
+                @if(auth()->user()->isAdmin() || auth()->user()->isSubAdmin())
                 <a href="{{ route('personnel.index') }}" class="{{ request()->routeIs('personnel.*') ? 'active' : '' }}">
                     <i class="bi bi-people"></i>
                     <span>Personnel</span>
@@ -253,6 +264,8 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-2">
                             <li><a class="dropdown-item rounded-2" href="{{ route('dashboard') }}"><i class="bi bi-grid me-2"></i> Dashboard</a></li>
+                            <li><a class="dropdown-item rounded-2" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i> Edit Profile</a></li>
+                            <li><a class="dropdown-item rounded-2" href="{{ route('profile.password') }}"><i class="bi bi-key me-2"></i> Change Password</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form action="{{ route('logout') }}" method="POST">

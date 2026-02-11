@@ -7,26 +7,26 @@ use App\Models\User;
 class UserPolicy
 {
     /**
-     * Admin can view list of all personnel.
+     * Admin and sub-admin can view list of all personnel.
      */
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $user->isSubAdmin();
     }
 
     /**
-     * Admin can view any user; personnel can view only themselves.
+     * Admin and sub-admin can view any user; personnel can view only themselves.
      */
     public function view(User $user, User $model): bool
     {
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->isSubAdmin()) {
             return true;
         }
         return $user->id === $model->id;
     }
 
     /**
-     * Only admin can create/update/delete personnel (for admin panel).
+     * Only admin can create personnel (sub-admin cannot add users).
      */
     public function create(User $user): bool
     {

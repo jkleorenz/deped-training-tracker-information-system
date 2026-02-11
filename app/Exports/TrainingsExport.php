@@ -14,10 +14,12 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
     /**
      * @param  Collection  $data  Either Collection of Training (with users) for "all", or Collection of items for single user
      * @param  User|null  $forUser  When set, export is for this user's trainings only
+     * @param  array<User>  $forUsers  When non-empty, export is for these users' trainings (multi-user, same format as "all")
      */
     public function __construct(
         protected Collection $data,
-        protected ?User $forUser = null
+        protected ?User $forUser = null,
+        protected array $forUsers = []
     ) {}
 
     public function headings(): array
@@ -34,10 +36,10 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
                 'Attended Date',
             ];
         }
+        // "all" and multi-user use same columns
         return [
             'Personnel',
             'Employee ID',
-            'Department',
             'Title',
             'Type',
             'Provider',
@@ -51,11 +53,22 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
 
     /**
      * For "all" export, flatten to one row per user-training. For single user, use collection as-is.
+     * For multiple users ($forUsers), flatten each user's trainings into rows.
      */
     public function collection(): Collection
     {
         if ($this->forUser) {
             return $this->data;
+        }
+        if ($this->forUsers !== []) {
+            $flat = collect();
+            foreach ($this->forUsers as $user) {
+                $trainings = $user->trainings()->orderBy('trainings.start_date', 'desc')->get();
+                foreach ($trainings as $training) {
+                    $flat->push((object) ['training' => $training, 'user' => $user]);
+                }
+            }
+            return $flat;
         }
         $flat = collect();
         foreach ($this->data as $training) {
@@ -73,11 +86,10 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
 
     private function allExportRow(Training $training, ?User $user): array
     {
-        $pivot = $user ? ($user->pivot ?? null) : null;
+        $pivot = $training->pivot ?? ($user ? ($user->pivot ?? null) : null);
         return [
             $user ? $user->name : '-',
             $user?->employee_id ?? '-',
-            $user?->department ?? '-',
             $training->title,
             $training->type,
             $training->provider,

@@ -21,6 +21,17 @@ class DatabaseSeeder extends Seeder
             'role' => User::ROLE_ADMIN,
         ]);
 
+        User::create([
+            'name' => 'Sub-Administrator',
+            'email' => 'subadmin@deped.local',
+            'password' => Hash::make('password'),
+            'role' => User::ROLE_SUB_ADMIN,
+            'employee_id' => 'SUBADMIN001',
+            'designation' => 'Sub-Administrator',
+            'department' => 'HRDD',
+            'school' => 'DepEd Division Office',
+        ]);
+
         $personnel = [
             User::create([
                 'name' => 'Juan Dela Cruz',
@@ -167,6 +178,7 @@ class DatabaseSeeder extends Seeder
         ], ['attended_date' => null, 'remarks' => null]);
 
         $this->command->info('Admin: admin@deped.local / password');
+        $this->command->info('Sub-admin: subadmin@deped.local / password');
         $this->command->info('Personnel: juan.delacruz@deped.local, maria.santos@deped.local, jake.cartilla@deped.local, juben.moring@deped.local, jayv.magallanes@deped.local / password');
     }
 }

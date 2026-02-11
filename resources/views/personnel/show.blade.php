@@ -4,14 +4,24 @@
 
 @push('styles')
 <style>
-.personnel-profile .card-header.card-header-green { background-color: #1e5aa8 !important; color: #fff; }
+.personnel-profile .card-header.card-header-green { background-color: #1E35FF !important; color: #fff; }
 .personnel-profile .card-header.card-header-green .mb-0 { color: #fff; }
 .personnel-profile .card-body { padding: 1.25rem 1.25rem; }
 .personnel-profile .table td { padding: 0.75rem 0.85rem; vertical-align: middle; }
 .personnel-profile .table thead th { padding: 0.75rem 0.85rem; white-space: nowrap; }
 .personnel-profile .table-responsive { border-radius: 0.25rem; }
+.personnel-profile .card-hover { transition: box-shadow 0.2s ease; }
+.personnel-profile .card-hover:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+.personnel-profile .stat-card-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(30, 53, 255, 0.12); color: var(--deped-primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
+.personnel-profile .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--deped-primary); }
 @media (min-width: 992px) {
     .personnel-profile .table thead th { position: sticky; top: 0; background: #f8f9fa; z-index: 1; box-shadow: 0 1px 0 0 #dee2e6; }
+}
+/* Action buttons: icon + text side-by-side, vertically centered */
+.personnel-profile .card-body .d-flex.gap-1 .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>
 @endpush
@@ -31,55 +41,70 @@
                     </nav>
                     <h4 class="page-title mb-0">{{ $user->name }}</h4>
                 </div>
-                <div class="d-flex gap-1">
-                    <a href="{{ route('reports.pdf', ['user_id' => $user->id]) }}" class="btn btn-deped btn-sm"><i class="bi bi-file-pdf me-1"></i> Print PDF</a>
-                    <a href="{{ route('reports.excel', ['user_id' => $user->id]) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-earmark-excel me-1"></i> Export Excel</a>
+                <div class="d-flex flex-wrap gap-1">
+                    <a href="{{ route('reports.pdf', ['user_id' => $user->id]) }}" class="btn btn-deped btn-sm" target="_blank"><i class="bi bi-file-pdf me-1"></i> Print STA</a>
+                    <a href="{{ route('reports.pds-pdf', ['user_id' => $user->id]) }}" class="btn btn-deped btn-sm" target="_blank"><i class="bi bi-person-vcard me-1"></i> Print PDS</a>
+                    <a href="{{ route('personnel.pds.edit', $user) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil-square me-1"></i> Edit PDS</a>
+                    <a href="{{ route('reports.excel', ['user_id' => $user->id]) }}" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-excel me-1"></i> Export Excel</a>
+                    @if(auth()->user()->isAdmin() || auth()->user()->isSubAdmin())
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportExcel"><i class="bi bi-upload me-1"></i> Import Excel</button>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Personnel info card --}}
+    {{-- Info cards: Trainings count, Employee ID, School / Office --}}
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="card h-100 card-hover">
+                <div class="card-body d-flex align-items-start gap-3">
+                    <div class="stat-card-icon flex-shrink-0"><i class="bi bi-journal-check"></i></div>
+                    <div class="min-w-0">
+                        <h6 class="text-muted mb-1">Trainings / Seminars</h6>
+                        <p class="mb-0 stat-number">{{ $user->trainings->count() }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 card-hover">
+                <div class="card-body d-flex align-items-start gap-3">
+                    <div class="stat-card-icon flex-shrink-0"><i class="bi bi-person-badge"></i></div>
+                    <div class="min-w-0">
+                        <h6 class="text-muted mb-1">Employee ID</h6>
+                        <p class="mb-0 fw-semibold">{{ $user->employee_id ?? '—' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 card-hover">
+                <div class="card-body d-flex align-items-start gap-3">
+                    <div class="stat-card-icon flex-shrink-0"><i class="bi bi-building"></i></div>
+                    <div class="min-w-0">
+                        <h6 class="text-muted mb-1">School / Office</h6>
+                        <p class="mb-0 fw-semibold">{{ $user->school ?? '—' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Personnel info card (based on Personal Data Sheet + user) --}}
     <div class="card mb-3">
         <div class="card-header card-header-green py-2">
             <h6 class="mb-0">Personnel info</h6>
         </div>
         <div class="card-body">
-            <dl class="row mb-0 small">
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">Name</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->name }}</dd>
-
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">Email</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->email }}</dd>
-
-                @if($user->employee_id)
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">Employee ID</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->employee_id }}</dd>
-                @endif
-
-                @if($user->designation)
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">Designation</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->designation }}</dd>
-                @endif
-
-                @if($user->department)
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">Department</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->department }}</dd>
-                @endif
-
-                @if($user->school)
-                <dt class="col-sm-3 col-md-2 text-muted fw-normal">School / Office</dt>
-                <dd class="col-sm-9 col-md-10">{{ $user->school }}</dd>
-                @endif
-            </dl>
+            @include('partials.personnel-info', ['user' => $user])
         </div>
     </div>
 
     {{-- Seminars & trainings attended card --}}
     <div class="card">
         <div class="card-header card-header-green py-2">
-            <h6 class="mb-0">Seminars & trainings attended</h6>
+            <h6 class="mb-0">Seminars & Trainings Attended</h6>
         </div>
         <div class="card-body">
             @if($user->trainings->isEmpty())
@@ -137,7 +162,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="small text-muted mb-3">Import trainings from an Excel file and assign them to <strong>{{ $user->name }}</strong>. Columns: Title, Type, Provider, Venue, Start Date, End Date, Hours, Attended Date, Remarks.</p>
+                <p class="small text-muted mb-3">Import trainings from an Excel file and assign them to <strong>{{ $user->name }}</strong>. Columns: Title, Type, Provider, Venue, Start Date, End Date, Hours, Attended Date.</p>
                 <div class="mb-2">
                     <label class="form-label">Excel file (.xlsx, .xls) <span class="text-danger">*</span></label>
                     <input type="file" id="import-excel-file" class="form-control" accept=".xlsx,.xls">

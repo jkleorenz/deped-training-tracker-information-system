@@ -5,8 +5,8 @@
     <title>Training Report - {{ $user->name }}</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 11px; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1e5aa8; padding-bottom: 10px; }
-        .header h1 { margin: 0; font-size: 16px; color: #1e5aa8; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1E35FF; padding-bottom: 10px; }
+        .header h1 { margin: 0; font-size: 16px; color: #1E35FF; }
         .meta { margin-bottom: 15px; }
         .meta p { margin: 2px 0; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -25,7 +25,6 @@
         <p><strong>Personnel:</strong> {{ $user->name }}</p>
         @if($user->employee_id)<p><strong>Employee ID:</strong> {{ $user->employee_id }}</p>@endif
         @if($user->designation)<p><strong>Designation:</strong> {{ $user->designation }}</p>@endif
-        @if($user->department)<p><strong>Department:</strong> {{ $user->department }}</p>@endif
         @if($user->school)<p><strong>School/Office:</strong> {{ $user->school }}</p>@endif
         <p><strong>Report generated:</strong> {{ now()->format('F j, Y g:i A') }}</p>
     </div>

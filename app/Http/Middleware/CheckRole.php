@@ -22,7 +22,12 @@ class CheckRole
 
         $user = Auth::user();
 
-        if (! in_array($user->role, $roles)) {
+        // Support comma-separated roles (e.g. role:admin,sub-admin)
+        $allowed = collect($roles)->flatMap(function ($r) {
+            return array_map('trim', explode(',', $r));
+        })->filter()->values()->all();
+
+        if (! in_array($user->role, $allowed)) {
             abort(403, 'Unauthorized. You do not have access to this area.');
         }
 

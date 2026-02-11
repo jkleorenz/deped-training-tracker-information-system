@@ -171,7 +171,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="small text-muted mb-3">Upload an Excel file with columns: Title, Type, Provider, Venue, Start Date, End Date, Hours, Attended Date, Remarks. All rows will be imported and assigned to the selected user(s).</p>
+                <p class="small text-muted mb-3">Upload an Excel file with columns: Title, Type, Provider, Venue, Start Date, End Date, Hours, Attended Date. All rows will be imported and assigned to the selected user(s).</p>
                 <div class="mb-3">
                     <label class="form-label">Select user(s) <span class="text-danger">*</span></label>
                     <select id="import-user-ids" class="form-select" multiple size="8">
@@ -275,8 +275,8 @@
                 <td>${t.hours != null ? t.hours : '—'}</td>
                 <td class="align-middle">
                     <div class="d-flex align-items-center justify-content-start gap-1 flex-nowrap">
-                        <button type="button" class="btn btn-sm btn-outline-primary edit-btn" data-id="${t.id}">Edit</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary assign-btn" data-id="${t.id}" data-title="${escapeAttr(t.title)}">Assign</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary edit-btn" data-id="${t.id}" title="Edit"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-success assign-btn" data-id="${t.id}" data-title="${escapeAttr(t.title)}" title="Assign personnel"><i class="bi bi-person-plus" aria-hidden="true"></i></button>
                     </div>
                 </td>
             </tr>

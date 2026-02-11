@@ -1,0 +1,5 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Redirect to public folder so Laravel front controller is used
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

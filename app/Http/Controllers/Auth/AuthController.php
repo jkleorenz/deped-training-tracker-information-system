@@ -53,9 +53,8 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'employee_id' => ['nullable', 'string', 'max:50'],
+            'employee_id' => ['required', 'string', 'max:50'],
             'designation' => ['nullable', 'string', 'max:100'],
-            'department' => ['nullable', 'string', 'max:100'],
             'school' => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -73,9 +72,8 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'employee_id' => ['nullable', 'string', 'max:50'],
+            'employee_id' => ['required', 'string', 'max:50'],
             'designation' => ['nullable', 'string', 'max:100'],
-            'department' => ['nullable', 'string', 'max:100'],
             'school' => ['nullable', 'string', 'max:255'],
         ]);
 

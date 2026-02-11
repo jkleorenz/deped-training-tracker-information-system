@@ -40,14 +40,18 @@ class PersonnelController extends Controller
                 $q->where('name', 'like', '%' . $search . '%')
                     ->orWhere('email', 'like', '%' . $search . '%')
                     ->orWhere('employee_id', 'like', '%' . $search . '%')
-                    ->orWhere('department', 'like', '%' . $search . '%')
+                    ->orWhere('designation', 'like', '%' . $search . '%')
                     ->orWhere('school', 'like', '%' . $search . '%');
             });
         }
 
-        $personnel = $query->get();
+        $personnel = $query->paginate(15)->withQueryString();
+        $personnelList = User::where('role', User::ROLE_PERSONNEL)->orderBy('name')->get(['id', 'name']);
 
-        return view('personnel.index', ['personnel' => $personnel]);
+        return view('personnel.index', [
+            'personnel' => $personnel,
+            'personnel_list' => $personnelList,
+        ]);
     }
 
     /**
@@ -59,7 +63,7 @@ class PersonnelController extends Controller
 
         $user->load(['trainings' => function ($q) {
             $q->orderBy('trainings.start_date', 'desc');
-        }]);
+        }, 'personalDataSheet']);
 
         return view('personnel.show', [
             'user' => $user,
@@ -81,14 +85,15 @@ class PersonnelController extends Controller
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('employee_id', 'like', "%{$search}%")
-                    ->orWhere('department', 'like', "%{$search}%")
+                    ->orWhere('designation', 'like', "%{$search}%")
                     ->orWhere('school', 'like', "%{$search}%");
             });
         }
 
-        $personnel = $query->get(['id', 'name', 'email', 'employee_id', 'designation', 'department', 'school']);
+        $perPage = min((int) $request->input('per_page', 50), 100);
+        $personnel = $query->paginate($perPage, ['id', 'name', 'email', 'employee_id', 'designation', 'school']);
 
-        return response()->json(['data' => $personnel]);
+        return response()->json(['data' => $personnel->items(), 'meta' => ['total' => $personnel->total(), 'per_page' => $personnel->perPage()]]);
     }
 
     /**

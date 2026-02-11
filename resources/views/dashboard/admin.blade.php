@@ -34,6 +34,9 @@
     font-size: 1.5rem;
 }
 .quick-action-tile .tile-label { font-weight: 600; font-size: 0.9375rem; }
+.export-user-list { max-height: 280px; overflow-y: auto; }
+.export-user-item { padding: 0.5rem 0.75rem; border-radius: 8px; }
+.export-user-item:hover { background: #f8fafc; }
 </style>
 @endpush
 
@@ -47,6 +50,7 @@
         <a href="{{ route('personnel.index') }}" class="btn btn-deped"><i class="bi bi-people me-1"></i> Manage Personnel</a>
     </div>
 </div>
+
 <div class="row g-3">
     <div class="col-md-4">
         <a href="{{ route('personnel.index') }}" class="text-decoration-none text-dark">
@@ -55,7 +59,7 @@
                     <div class="stat-card-icon flex-shrink-0"><i class="bi bi-people"></i></div>
                     <div class="min-w-0">
                         <h6 class="text-muted mb-1">Personnel</h6>
-                        <p class="mb-0 stat-number" id="stat-personnel">—</p>
+                        <p class="mb-0 stat-number" id="stat-personnel">{{ $personnel_count ?? 0 }}</p>
                         <span class="small text-muted">View all →</span>
                     </div>
                 </div>
@@ -69,7 +73,7 @@
                     <div class="stat-card-icon flex-shrink-0"><i class="bi bi-journal-check"></i></div>
                     <div class="min-w-0">
                         <h6 class="text-muted mb-1">Trainings / Seminars</h6>
-                        <p class="mb-0 stat-number" id="stat-trainings">—</p>
+                        <p class="mb-0 stat-number" id="stat-trainings">{{ $trainings_count ?? 0 }}</p>
                         <span class="small text-muted">Manage →</span>
                     </div>
                 </div>
@@ -107,10 +111,10 @@
             </a>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
-            <a href="{{ route('reports.excel') }}" class="quick-action-tile">
+            <button type="button" class="quick-action-tile w-100" data-bs-toggle="modal" data-bs-target="#exportExcelModal" style="cursor: pointer;">
                 <div class="tile-icon"><i class="bi bi-file-earmark-excel"></i></div>
                 <span class="tile-label">Export to Excel</span>
-            </a>
+            </button>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
             <a href="{{ route('trainings.manage') }}" class="quick-action-tile">
@@ -121,36 +125,80 @@
     </div>
 </div>
 
+{{-- Export to Excel: select one or multiple users --}}
+<div class="modal fade" id="exportExcelModal" tabindex="-1" aria-labelledby="exportExcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-3 shadow-sm">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title d-flex align-items-center gap-2" id="exportExcelModalLabel">
+                    <span class="rounded-2 p-2 bg-primary bg-opacity-10 text-primary"><i class="bi bi-file-earmark-excel"></i></span>
+                    Export to Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="text-muted small mb-3">Select one or more personnel to export their training records. Leave all unchecked to export everyone.</p>
+                <div class="d-flex gap-2 mb-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-3" id="exportSelectAll">Select all</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-3" id="exportClearAll">Clear</button>
+                </div>
+                <div class="export-user-list border rounded-3 p-2" id="exportUserList">
+                    @foreach($personnel_list ?? [] as $p)
+                        <label class="export-user-item d-flex align-items-center gap-2 mb-0 cursor-pointer">
+                            <input type="checkbox" class="form-check-input export-user-cb" value="{{ $p->id }}" data-name="{{ e($p->name) }}">
+                            <span>{{ $p->name }}</span>
+                        </label>
+                    @endforeach
+                    @if(empty($personnel_list) || count($personnel_list ?? []) === 0)
+                        <p class="text-muted small mb-0 py-2">No personnel to list.</p>
+                    @endif
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 flex-nowrap">
+                <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" class="btn btn-deped rounded-3 px-4" id="exportExcelGo"><i class="bi bi-download me-1"></i> Export to Excel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 (function() {
-    const baseUrl = '{{ url("/") }}';
-    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var baseUrl = "{{ url(route('reports.excel')) }}";
+    var goBtn = document.getElementById('exportExcelGo');
+    var selectAllBtn = document.getElementById('exportSelectAll');
+    var clearAllBtn = document.getElementById('exportClearAll');
+    var checkboxes = document.querySelectorAll('.export-user-cb');
 
-    async function get(url) {
-        const r = await fetch(baseUrl + url, {
-            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    function buildExportUrl() {
+        var ids = [];
+        checkboxes.forEach(function(cb) {
+            if (cb.checked) ids.push(cb.value);
         });
-        return r.json();
+        if (ids.length === 0) return baseUrl;
+        return baseUrl + '?' + ids.map(function(id) { return 'user_id[]=' + encodeURIComponent(id); }).join('&');
     }
 
-    (async function loadStats() {
-        try {
-            const [personnelRes, trainingsRes] = await Promise.all([
-                get('/api/personnel'),
-                get('/api/trainings')
-            ]);
-            const personnelCount = (personnelRes.data || []).length;
-            const trainingsCount = (trainingsRes.data || []).length;
-            document.getElementById('stat-personnel').textContent = personnelCount;
-            document.getElementById('stat-trainings').textContent = trainingsCount;
-            // Attendance = user_trainings count; we don't have a direct endpoint, show trainings for now or leave as —
-            document.getElementById('stat-attendance').textContent = '—';
-        } catch (e) {
-            console.error(e);
-        }
-    })();
+    if (goBtn) {
+        goBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            goBtn.href = buildExportUrl();
+            window.location.href = goBtn.href;
+        });
+    }
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function() {
+            checkboxes.forEach(function(cb) { cb.checked = true; });
+        });
+    }
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', function() {
+            checkboxes.forEach(function(cb) { cb.checked = false; });
+        });
+    }
 })();
 </script>
+{{-- Stats are server-rendered above; no extra API calls on page load --}}
 @endpush
 @endsection

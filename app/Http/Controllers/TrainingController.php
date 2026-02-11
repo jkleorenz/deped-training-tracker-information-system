@@ -15,11 +15,6 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class TrainingController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('role:admin');
-    }
-
     /**
      * Admin page: manage trainings (list, add, assign personnel).
      */
@@ -44,8 +39,9 @@ class TrainingController extends Controller
             });
         }
 
-        $trainings = $query->get();
-        return response()->json(['data' => $trainings]);
+        $perPage = min((int) $request->input('per_page', 50), 100);
+        $trainings = $query->paginate($perPage);
+        return response()->json(['data' => $trainings->items(), 'meta' => ['total' => $trainings->total(), 'per_page' => $trainings->perPage()]]);
     }
 
     /**
