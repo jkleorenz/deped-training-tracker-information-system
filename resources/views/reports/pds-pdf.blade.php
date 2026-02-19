@@ -35,10 +35,48 @@
         .pds-name-cols { font-size: 7px; font-weight: bold; color: #333; }
         .pds-name-box-pdf { border: 1px solid #000; }
         .pds-name-box-pdf td { border: 1px solid #000; padding: 2px 3px; }
+        .pds-photo-box-pdf { width: 127.58pt; height: 99.21pt; border: 1px solid #000; overflow: hidden; display: block; margin-bottom: 2px; }
+        .pds-photo-box-pdf img { width: 127.58pt; height: 99.21pt; object-fit: cover; display: block; }
         /* Page 2: answer cells (yellow) per reference form */
         .page2-answer { background-color: #fffde7 !important; }
         .page2 .footer-sig-value { background-color: #fffde7 !important; }
-        @media print { body { margin: 5px; } .footer-block { page-break-inside: avoid; } }
+        /* Page 4: Q34–40, References, Declaration, Govt ID, Photo — compact to fit one page */
+        .pds-page4-wrap { font-size: 7pt; line-height: 1.05; margin: 0; padding: 0; box-sizing: border-box; }
+        .pds-page4-wrap .pds-table { border-collapse: collapse; border: 1px solid #000; table-layout: fixed; width: 100%; }
+        .pds-page4-wrap .pds-table td, .pds-page4-wrap .pds-table th { border: 1px solid #000; padding: 0 2px; vertical-align: top; font-size: 7pt; }
+        .pds-page4-section-title { background: #e0e0e0; border: 1px solid #000; font-weight: bold; font-size: 8pt; text-transform: uppercase; padding: 1px 3px; }
+        .pds-page4-yn-table { margin-top: 0; }
+        .pds-page4-yn-table .pds-q-col { width: 70%; background: #f8f8f8; font-weight: bold; font-size: 6.5pt; line-height: 1.02; padding: 0 2px; }
+        .pds-page4-yn-table .pds-yes-col { width: 15%; text-align: center; vertical-align: middle; padding: 0 1px; }
+        .pds-page4-yn-table .pds-no-col { width: 15%; text-align: center; vertical-align: middle; padding: 0 1px; }
+        .pds-page4-yn-table .pds-yn-header { background: #e0e0e0; font-weight: bold; font-size: 7pt; text-align: center; padding: 1px 2px; }
+        .pds-page4-cb { display: inline-block; width: 6px; height: 6px; border: 1px solid #000; text-align: center; line-height: 6px; font-size: 5pt; vertical-align: middle; }
+        .pds-page4-details-row .pds-q-col { background: #fff; border-top: none; }
+        .pds-page4-details-row .pds-yes-col { text-align: left; font-weight: normal; font-size: 6.5pt; padding-left: 2px; vertical-align: top; }
+        .pds-page4-ref-table { margin-top: 0; }
+        .pds-page4-ref-table .pds-ref-th { background: #e0e0e0; font-weight: bold; font-size: 7pt; text-align: center; width: 33.33%; padding: 1px 2px; border: 1px solid #000; }
+        .pds-page4-ref-table .pds-ref-td { width: 33.33%; font-size: 7pt; word-wrap: break-word; padding: 0 2px; }
+        .pds-page4-declaration-box { border: 1px solid #000; padding: 1px 3px; margin-top: 0; }
+        .pds-page4-declaration-box .declaration-text { text-align: justify; font-size: 6.5pt; line-height: 1.08; }
+        .pds-page4-declaration-box .govt-id-table { margin-top: 1px; }
+        .pds-page4-declaration-box .govt-id-table td { border: 1px solid #000; padding: 0 2px; font-size: 7pt; }
+        .pds-page4-declaration-box .govt-id-table .govt-id-label { background: #f0f0f0; font-weight: bold; width: 33%; }
+        .pds-page4-sig-box { border: 1px solid #000; min-height: 8px; background: #fff; display: block; }
+        .pds-page4-oath-wrap { border: 1px solid #000; margin-top: 1px; overflow: hidden; }
+        .pds-page4-oath-area { min-height: 8px; background: #fff; padding: 1px 3px; text-align: center; font-size: 6.5pt; line-height: 1.08; color: #c00; }
+        .pds-page4-oath-label { background: #e0e0e0; padding: 1px 2px; text-align: center; font-size: 7pt; font-weight: bold; }
+        .pds-page4-right-col { width: 28%; vertical-align: top; padding-left: 2px; border: none; }
+        .pds-page4-photo-box { border: 1px solid #000; width: 4.5cm; height: 3.5cm; background: #fff; text-align: center; font-size: 6pt; line-height: 1; padding: 0; box-sizing: border-box; margin-bottom: 0; }
+        .pds-page4-photo-box .pds-page4-photo-img { width: 4.5cm; height: 3.5cm; max-width: 100%; max-height: 100%; object-fit: cover; object-position: center; display: block; }
+        .pds-page4-photo-label { font-size: 7pt; font-weight: bold; margin-top: 0; text-align: center; }
+        .pds-page4-thumbmark-wrap { border: 1px solid #000; width: 2cm; margin-top: 1px; overflow: hidden; }
+        .pds-page4-thumbmark-area { height: 0.9cm; background: #fff; }
+        .pds-page4-thumbmark-label { background: #e0e0e0; padding: 0 1px; text-align: center; font-size: 6pt; font-weight: bold; }
+        .pds-page4-left-col { width: 72%; vertical-align: top; border: none; padding: 0; }
+        .pds-page4-bottom-table { margin-top: 0; border: none; }
+        .pds-page4-bottom-table td { border: none; padding: 0; vertical-align: top; }
+        .pds-page4-wrap { page-break-inside: avoid; }
+        @media print { body { margin: 5px; } .footer-block { page-break-inside: avoid; } .pds-page4-wrap { page-break-inside: avoid; } }
     </style>
 </head>
 <body>
@@ -67,7 +105,12 @@
         <tr>
             <td class="label-cell">1. SURNAME</td>
             <td class="value-cell">{{ $val($p?->surname) }}</td>
-            <td class="value-cell" rowspan="3" style="width:16%;vertical-align:top;">
+            <td class="value-cell" rowspan="3" style="width:18%;vertical-align:top;">
+                @if(!empty($photoPathAbsolute))
+                <div class="pds-photo-box-pdf"><img src="{{ $photoPathAbsolute }}" alt="" /></div>
+                @else
+                <div class="pds-photo-box-pdf" style="background:#f5f5f5;font-size:6px;text-align:center;line-height:99pt;">Photo 4.5×3.5 cm</div>
+                @endif
                 <strong>NAME EXTENSION (JR., SR)</strong><br>
                 <span style="border-bottom:1px solid #000;">{{ $val($p?->name_extension) }}</span>
             </td>
@@ -201,41 +244,47 @@
 
     <table class="pds-table" style="margin-top:4px;">
         <tr>
-            <td colspan="4" class="section-header">II. FAMILY BACKGROUND</td>
+            <td colspan="5" class="section-header">II. FAMILY BACKGROUND</td>
         </tr>
-        {{-- 22. Spouse — 3 columns in 1 box: SURNAME | FIRST NAME | MIDDLE NAME --}}
+        {{-- 22. Spouse — SURNAME | FIRST NAME | MIDDLE NAME | NAME EXTENSION (JR., SR.) --}}
         <tr class="pds-name-box-pdf">
-            <td class="label-cell" rowspan="2" style="width:18%;vertical-align:top;">22. SPOUSE'S</td>
-            <td class="pds-name-cols label-cell" style="width:27%;">SURNAME</td>
-            <td class="pds-name-cols label-cell" style="width:27%;">FIRST NAME</td>
-            <td class="pds-name-cols label-cell" style="width:28%;">MIDDLE NAME</td>
+            <td class="label-cell" rowspan="2" style="width:14%;vertical-align:top;">22. SPOUSE'S</td>
+            <td class="pds-name-cols label-cell" style="width:22%;">SURNAME</td>
+            <td class="pds-name-cols label-cell" style="width:22%;">FIRST NAME</td>
+            <td class="pds-name-cols label-cell" style="width:22%;">MIDDLE NAME</td>
+            <td class="pds-name-cols label-cell" style="width:20%;">NAME EXTENSION (JR., SR.)</td>
         </tr>
         <tr class="pds-name-box-pdf">
             <td class="value-cell">{{ $val($p?->spouse_surname) }}</td>
             <td class="value-cell">{{ $val($p?->spouse_first_name) }}</td>
             <td class="value-cell">{{ $val($p?->spouse_middle_name) }}</td>
+            <td class="value-cell">{{ $val($p?->spouse_name_extension) }}</td>
         </tr>
         {{-- OCCUPATION | EMPLOYER/BUSINESS NAME — row 1: gray labels, row 2: white answers --}}
         <tr class="pds-name-box-pdf">
-            <td class="pds-name-cols label-cell" colspan="2" style="width:50%;">OCCUPATION</td>
-            <td class="pds-name-cols label-cell" colspan="2" style="width:50%;">EMPLOYER/BUSINESS NAME</td>
+            <td class="label-cell" style="width:14%;"></td>
+            <td class="pds-name-cols label-cell" colspan="2" style="width:43%;">OCCUPATION</td>
+            <td class="pds-name-cols label-cell" colspan="2" style="width:43%;">EMPLOYER/BUSINESS NAME</td>
         </tr>
         <tr class="pds-name-box-pdf">
-            <td class="value-cell" colspan="2" style="width:50%;">{{ $val($p?->spouse_occupation) }}</td>
-            <td class="value-cell" colspan="2" style="width:50%;">{{ $val($p?->spouse_employer_business_name) }}</td>
+            <td class="label-cell" style="width:14%;"></td>
+            <td class="value-cell" colspan="2" style="width:43%;">{{ $val($p?->spouse_occupation) }}</td>
+            <td class="value-cell" colspan="2" style="width:43%;">{{ $val($p?->spouse_employer_business_name) }}</td>
         </tr>
         {{-- BUSINESS ADDRESS | TELEPHONE NO. — row 1: gray labels, row 2: white answers --}}
         <tr class="pds-name-box-pdf">
-            <td class="pds-name-cols label-cell" colspan="2" style="width:50%;">BUSINESS ADDRESS</td>
-            <td class="pds-name-cols label-cell" colspan="2" style="width:50%;">TELEPHONE NO.</td>
+            <td class="label-cell" style="width:14%;"></td>
+            <td class="pds-name-cols label-cell" colspan="2" style="width:43%;">BUSINESS ADDRESS</td>
+            <td class="pds-name-cols label-cell" colspan="2" style="width:43%;">TELEPHONE NO.</td>
         </tr>
         <tr class="pds-name-box-pdf">
-            <td class="value-cell" colspan="2" style="width:50%;">{{ $val($p?->spouse_business_address) }}</td>
-            <td class="value-cell" colspan="2" style="width:50%;">{{ $val($p?->spouse_telephone) }}</td>
+            <td class="label-cell" style="width:14%;"></td>
+            <td class="value-cell" colspan="2" style="width:43%;">{{ $val($p?->spouse_business_address) }}</td>
+            <td class="value-cell" colspan="2" style="width:43%;">{{ $val($p?->spouse_telephone) }}</td>
         </tr>
         <tr>
             <td class="label-cell">23. NAME of CHILDREN (Write full name and list all)</td>
-            <td class="value-cell" colspan="3">{{ $val($p?->children_names) }}</td>
+            <td class="value-cell" colspan="4">{{ $val($p?->children_names) }}</td>
         </tr>
         {{-- 24. Father — 3 columns in 1 box --}}
         <tr class="pds-name-box-pdf">
@@ -265,15 +314,16 @@
 
     <table class="pds-table" style="margin-top:4px;">
         <tr>
-            <td colspan="6" class="section-header">III. EDUCATIONAL BACKGROUND</td>
+            <td colspan="7" class="section-header">III. EDUCATIONAL BACKGROUND</td>
         </tr>
         <tr>
-            <th class="edu-table" style="width:12%;">LEVEL</th>
-            <th class="edu-table" style="width:22%;">NAME OF SCHOOL<br>(Write in full)</th>
-            <th class="edu-table" style="width:22%;">BASIC EDUCATION/DEGREE/COURSE<br>(Write in full)</th>
-            <th class="edu-table" style="width:18%;">PERIOD OF ATTENDANCE<br>From &nbsp;&nbsp;&nbsp;&nbsp; To</th>
-            <th class="edu-table" style="width:14%;">HIGHEST LEVEL/UNITS EARNED<br>(if not graduated)</th>
-            <th class="edu-table" style="width:12%;">SCHOLARSHIP/ACADEMIC HONORS RECEIVED</th>
+            <th class="edu-table" style="width:10%;">LEVEL</th>
+            <th class="edu-table" style="width:18%;">NAME OF SCHOOL<br>(Write in full)</th>
+            <th class="edu-table" style="width:18%;">BASIC EDUCATION/DEGREE/COURSE<br>(Write in full)</th>
+            <th class="edu-table" style="width:14%;">PERIOD OF ATTENDANCE<br>From &nbsp;&nbsp;&nbsp;&nbsp; To</th>
+            <th class="edu-table" style="width:12%;">HIGHEST LEVEL/UNITS EARNED<br>(if not graduated)</th>
+            <th class="edu-table" style="width:10%;">Year Graduated</th>
+            <th class="edu-table" style="width:18%;">SCHOLARSHIP/ACADEMIC HONORS RECEIVED</th>
         </tr>
         <tr>
             <td>ELEMENTARY</td>
@@ -281,6 +331,7 @@
             <td class="ul">{{ $val($p?->elem_degree_course) }}</td>
             <td class="ul">{{ $val($p?->elem_period_from) }} {{ $val($p?->elem_period_to) }}</td>
             <td class="ul">{{ $val($p?->elem_highest_level_units) }}</td>
+            <td class="ul">{{ $val($p?->elem_year_graduated) }}</td>
             <td class="ul">{{ $val($p?->elem_scholarship_honors) }}</td>
         </tr>
         <tr>
@@ -289,6 +340,7 @@
             <td class="ul">{{ $val($p?->secondary_degree_course) }}</td>
             <td class="ul">{{ $val($p?->secondary_period_from) }} {{ $val($p?->secondary_period_to) }}</td>
             <td class="ul">{{ $val($p?->secondary_highest_level_units) }}</td>
+            <td class="ul">{{ $val($p?->secondary_year_graduated) }}</td>
             <td class="ul">{{ $val($p?->secondary_scholarship_honors) }}</td>
         </tr>
         <tr>
@@ -297,6 +349,7 @@
             <td class="ul">{{ $val($p?->voc_degree_course) }}</td>
             <td class="ul">{{ $val($p?->voc_period_from) }} {{ $val($p?->voc_period_to) }}</td>
             <td class="ul">{{ $val($p?->voc_highest_level_units) }}</td>
+            <td class="ul">{{ $val($p?->voc_year_graduated) }}</td>
             <td class="ul">{{ $val($p?->voc_scholarship_honors) }}</td>
         </tr>
         <tr>
@@ -305,6 +358,7 @@
             <td class="ul">{{ $val($p?->college_degree_course) }}</td>
             <td class="ul">{{ $val($p?->college_period_from) }} {{ $val($p?->college_period_to) }}</td>
             <td class="ul">{{ $val($p?->college_highest_level_units) }}</td>
+            <td class="ul">{{ $val($p?->college_year_graduated) }}</td>
             <td class="ul">{{ $val($p?->college_scholarship_honors) }}</td>
         </tr>
         <tr>
@@ -313,6 +367,7 @@
             <td class="ul">{{ $val($p?->grad_degree_course) }}</td>
             <td class="ul">{{ $val($p?->grad_period_from) }} {{ $val($p?->grad_period_to) }}</td>
             <td class="ul">{{ $val($p?->grad_highest_level_units) }}</td>
+            <td class="ul">{{ $val($p?->grad_year_graduated) }}</td>
             <td class="ul">{{ $val($p?->grad_scholarship_honors) }}</td>
         </tr>
     </table>
@@ -427,6 +482,10 @@
             </table>
         </div>
     </div>
+
+    {{-- Page 4: Q34–40, References, Declaration, Govt ID, Photo --}}
+    <div style="page-break-before: always;"></div>
+    @include('reports.partials.pds-pdf-page4')
 
 </body>
 </html>

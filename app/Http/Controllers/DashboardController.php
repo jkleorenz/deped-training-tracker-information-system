@@ -24,14 +24,10 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Personnel: eager-load trainings once for the table (no N+1)
-        $user->load([
-            'trainings' => fn ($q) => $q->orderBy('trainings.start_date', 'desc')->withPivot(['attended_date', 'remarks']),
-        ]);
-
+        // Personnel: table is loaded via AJAX (search/filter/sort/pagination) so we pass empty collection
         return view('dashboard.personnel', [
             'user' => $user,
-            'trainings' => $user->trainings,
+            'trainings' => collect([]),
         ]);
     }
 }

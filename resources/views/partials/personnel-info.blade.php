@@ -36,7 +36,7 @@
 
     @if($pds && $pds->date_of_birth)
     <dt class="col-sm-3 col-md-2 text-muted fw-normal">Date of birth</dt>
-    <dd class="col-sm-9 col-md-10">{{ $pds->date_of_birth->format('F j, Y') }}</dd>
+    <dd class="col-sm-9 col-md-10">{{ \Carbon\Carbon::parse($pds->date_of_birth)->format('F j, Y') }}</dd>
     @endif
 
     @if($pds && trim($pds->place_of_birth ?? '') !== '')

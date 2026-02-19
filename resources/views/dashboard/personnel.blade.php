@@ -7,18 +7,74 @@
 .dashboard-personnel .card-header.card-header-green { background-color: #1E35FF !important; color: #fff; }
 .dashboard-personnel .card-header.card-header-green .mb-0 { color: #fff; }
 .dashboard-personnel .card-body { padding: 1.25rem 1.25rem; }
-.dashboard-personnel .table td { padding: 0.75rem 0.85rem; vertical-align: middle; }
-.dashboard-personnel .table thead th { padding: 0.75rem 0.85rem; white-space: nowrap; }
 .dashboard-personnel .card-hover { transition: box-shadow 0.2s ease; }
 .dashboard-personnel .card-hover:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
 .dashboard-personnel .stat-card-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(30, 53, 255, 0.12); color: var(--deped-primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
 .dashboard-personnel .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--deped-primary); }
-/* Action buttons: icon + text side-by-side, vertically centered */
-.dashboard-personnel .d-flex.justify-content-between.mb-4 .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+.dashboard-personnel .d-flex.justify-content-between.mb-4 .btn { display: inline-flex; align-items: center; justify-content: center; }
+
+/* ——— Trainings table: scanability, density, sticky header ——— */
+.trainings-table-wrap .trainings-table-scroll { max-height: min(70vh, 560px); overflow: auto; }
+.trainings-table { border-collapse: collapse; }
+.trainings-table thead th {
+    position: sticky; top: 0; z-index: 2;
+    background: #f1f5f9; color: #334155;
+    padding: 0.6rem 0.75rem; font-size: 0.8125rem; font-weight: 600;
+    white-space: nowrap; border-bottom: 2px solid #e2e8f0;
 }
+.trainings-table tbody td {
+    padding: 0.5rem 0.75rem; vertical-align: middle;
+    font-size: 0.875rem; line-height: 1.35;
+    height: 48px; max-height: 56px; box-sizing: border-box;
+}
+.trainings-table tbody tr { transition: background 0.15s ease; }
+.trainings-table tbody tr:nth-child(even) { background: #fafbfc; }
+.trainings-table tbody tr:nth-child(odd) { background: #fff; }
+.trainings-table tbody tr:hover { background: #eef4ff !important; }
+.trainings-table tbody tr.selected { background: #e0e7ff !important; outline: 1px solid var(--deped-primary); outline-offset: -1px; }
+.trainings-table .col-title { font-weight: 600; color: #1e293b; }
+.trainings-table .col-expand { width: 2.25rem; padding-left: 0.5rem !important; }
+.trainings-table .col-actions { width: 6rem; }
+.trainings-table .text-truncate-cell { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trainings-table .sortable { cursor: pointer; user-select: none; }
+.trainings-table .sortable:hover { color: var(--deped-primary); }
+.trainings-table .sortable .sort-icon { opacity: 0.4; margin-left: 0.25rem; }
+.trainings-table .sortable[aria-sort="ascending"] .sort-icon-desc { display: none; }
+.trainings-table .sortable[aria-sort="ascending"] .sort-icon-asc { display: inline; }
+.trainings-table .sortable[aria-sort="descending"] .sort-icon-asc { display: none; }
+.trainings-table .sortable[aria-sort="descending"] .sort-icon-desc { display: inline; }
+.trainings-table .sortable[aria-sort="none"] .sort-icon-asc,
+.trainings-table .sortable[aria-sort="none"] .sort-icon-desc { display: none; }
+.trainings-table .row-detail { background: #f8fafc !important; }
+.trainings-table .row-detail td { padding: 0.75rem 1rem; font-size: 0.8125rem; vertical-align: top; border-top: none; }
+.trainings-table .row-detail .detail-grid { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; }
+.trainings-table .row-detail .detail-label { color: #64748b; }
+.trainings-table .btn-action-icon { padding: 0.35rem; width: 2rem; height: 2rem; }
+.trainings-table .btn-action-icon.btn-delete:hover { color: #dc2626; border-color: #dc2626; }
+
+/* Pagination: no overflow on small screens */
+.trainings-pagination-wrap { flex-wrap: wrap; }
+.trainings-pagination { display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: flex-end; align-items: center; }
+.trainings-pagination .page-link { padding: 0.35rem 0.6rem; font-size: 0.875rem; }
+
+/* ——— Mobile: stacked cards (no horizontal scroll) ——— */
+@media (max-width: 767.98px) {
+    .trainings-table-wrap { display: none !important; }
+    .trainings-cards-wrap.d-none { display: none !important; }
+    .trainings-cards-wrap:not(.d-none) { display: block !important; }
+    .trainings-card .card-header .d-flex { width: 100%; justify-content: flex-end; }
+}
+@media (min-width: 768px) {
+    .trainings-cards-wrap { display: none !important; }
+}
+.trainings-card-mobile {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 1rem; margin-bottom: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.trainings-card-mobile .card-mobile-title { font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; }
+.trainings-card-mobile .card-mobile-row { display: flex; gap: 0.5rem; font-size: 0.8125rem; margin-bottom: 0.25rem; }
+.trainings-card-mobile .card-mobile-label { color: #64748b; min-width: 5rem; }
+.trainings-card-mobile .card-mobile-actions { margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #eee; display: flex; gap: 0.5rem; }
 </style>
 @endpush
 
@@ -33,69 +89,123 @@
             <a href="{{ route('reports.excel') }}" class="btn btn-outline-secondary btn-sm me-1"><i class="bi bi-file-earmark-excel me-1"></i> Export Excel</a>
             <a href="{{ route('reports.pdf') }}" class="btn btn-deped btn-sm me-1" target="_blank"><i class="bi bi-file-pdf me-1"></i> Print STA</a>
             <a href="{{ route('reports.pds-pdf') }}" class="btn btn-deped btn-sm" target="_blank"><i class="bi bi-person-vcard me-1"></i> Print PDS</a>
+            <a href="{{ route('reports.pds-excel') }}" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel me-1"></i> PDS Excel</a>
         </div>
     </div>
 
-    {{-- Seminars & trainings attended: same green-header card as personnel profile --}}
-    <div class="card mt-3">
-        <div class="card-header card-header-green py-2 d-flex justify-content-between align-items-center">
+    {{-- Seminars & trainings attended --}}
+    <div class="card mt-3 trainings-card">
+        <div class="card-header card-header-green py-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
             <h6 class="mb-0">Seminars & Trainings Attended</h6>
-            <button type="button" class="btn btn-light btn-sm py-1" data-bs-toggle="modal" data-bs-target="#modalAddMyTraining" title="Add training or seminar to your record">
-                <i class="bi bi-plus-lg"></i> Add training / seminar
-            </button>
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <a href="{{ route('reports.excel') }}" class="btn btn-light btn-sm py-1" title="Export to Excel"><i class="bi bi-file-earmark-excel"></i> Export</a>
+                <a href="{{ route('reports.pdf') }}" class="btn btn-light btn-sm py-1" target="_blank" title="Print STA"><i class="bi bi-file-pdf"></i> Print</a>
+                <button type="button" class="btn btn-light btn-sm py-1" data-bs-toggle="modal" data-bs-target="#modalAddMyTraining" title="Add training or seminar to your record" id="btn-add-training-top">
+                    <i class="bi bi-plus-lg"></i> Add training / seminar
+                </button>
+            </div>
         </div>
         <div class="card-body">
-            <div id="trainings-loading" class="text-center py-5 d-none">
-                <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-                <p class="mt-2 mb-0 text-muted small">Loading...</p>
+            {{-- Search & filters (no reload) --}}
+            <div class="trainings-toolbar mb-3">
+                <div class="row g-2 align-items-end flex-wrap">
+                    <div class="col-12 col-md-auto flex-grow-1">
+                        <label class="form-label visually-hidden" for="trainings-search">Search</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+                            <input type="search" id="trainings-search" class="form-control" placeholder="Search title, provider, venue…" aria-label="Search trainings">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label visually-hidden" for="filter-type_of_ld">Type of L&amp;D</label>
+                        <select id="filter-type_of_ld" class="form-select form-select-sm" aria-label="Filter by Type of L&D">
+                            <option value="">All types</option>
+                            <option value="Managerial">Managerial</option>
+                            <option value="Supervisory">Supervisory</option>
+                            <option value="Technical">Technical</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label visually-hidden" for="filter-year">Year</label>
+                        <select id="filter-year" class="form-select form-select-sm" aria-label="Filter by year">
+                            <option value="">All years</option>
+                            @foreach(range(now()->year, now()->year - 15) as $y)
+                            <option value="{{ $y }}">{{ $y }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label visually-hidden" for="filter-min-hrs">Min hours</label>
+                        <input type="number" id="filter-min-hrs" class="form-control form-control-sm" min="0" placeholder="Min hrs" aria-label="Minimum hours" style="width: 6rem;">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label visually-hidden" for="filter-max-hrs">Max hours</label>
+                        <input type="number" id="filter-max-hrs" class="form-control form-control-sm" min="0" placeholder="Max hrs" aria-label="Maximum hours" style="width: 6rem;">
+                    </div>
+                </div>
             </div>
-            <div id="trainings-empty" class="text-center py-5 text-muted {{ $trainings->isEmpty() ? '' : 'd-none' }}">
-                <i class="bi bi-journal-check display-5 d-block mb-2 opacity-50"></i>
-                <p class="mb-1">No seminars or trainings recorded.</p>
-                <p class="small mb-0">Add a training or seminar to get started.</p>
+
+            <div id="trainings-loading" class="text-center py-5 d-none" role="status" aria-live="polite">
+                <div class="spinner-border text-primary" aria-hidden="true"></div>
+                <p class="mt-2 mb-0 text-muted small">Loading…</p>
             </div>
-            <div class="table-responsive {{ $trainings->isEmpty() ? 'd-none' : '' }}" id="trainings-wrap">
-                <table class="table table-hover table-striped mb-0 align-middle">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Type</th>
-                            <th>Provider</th>
-                            <th>Venue</th>
-                            <th>Start</th>
-                            <th>End</th>
-                            <th class="text-end">Hrs</th>
-                            <th>Attended</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="trainings-tbody">
-                        @foreach($trainings as $t)
-                        @php
-                            $startStr = $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : null;
-                            $endStr = $t->end_date ? \Carbon\Carbon::parse($t->end_date)->format('Y-m-d') : null;
-                            $attendedStr = ($t->pivot && $t->pivot->attended_date) ? \Carbon\Carbon::parse($t->pivot->attended_date)->format('Y-m-d') : null;
-                            $typeLabel = $t->type ? ucfirst(strtolower($t->type)) : '—';
-                        @endphp
-                        <tr>
-                            <td>{{ $t->title }}</td>
-                            <td>{{ $typeLabel }}</td>
-                            <td>{{ $t->provider ?? '—' }}</td>
-                            <td>{{ $t->venue ?? '—' }}</td>
-                            <td>{{ $startStr ? \Carbon\Carbon::parse($t->start_date)->format('M j, Y') : '—' }}</td>
-                            <td>{{ $endStr ? \Carbon\Carbon::parse($t->end_date)->format('M j, Y') : '—' }}</td>
-                            <td class="text-end">{{ $t->hours !== null ? $t->hours : '—' }}</td>
-                            <td>{{ $attendedStr ? \Carbon\Carbon::parse($t->pivot->attended_date)->format('M j, Y') : '—' }}</td>
-                            <td class="text-end align-middle">
-                                <div class="d-flex align-items-center justify-content-end gap-1 flex-nowrap">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm edit-attendance" data-id="{{ $t->id }}" data-title="{{ e($t->title) }}" data-attended="{{ $attendedStr ?? '' }}" data-remarks="{{ e($t->pivot->remarks ?? '') }}" title="Edit attendance"><i class="bi bi-pencil-square"></i></button>
-                                    <button type="button" class="btn btn-outline-danger btn-sm remove-attendance" data-id="{{ $t->id }}" data-title="{{ e($t->title) }}" title="Remove from my record"><i class="bi bi-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <div id="trainings-empty" class="text-center py-5 text-muted d-none">
+                <i class="bi bi-journal-check display-5 d-block mb-2 opacity-50" aria-hidden="true"></i>
+                <p class="mb-2">No trainings added yet.</p>
+                <button type="button" class="btn btn-deped" data-bs-toggle="modal" data-bs-target="#modalAddMyTraining">
+                    <i class="bi bi-plus-lg"></i> Add training / seminar
+                </button>
+            </div>
+
+            {{-- Desktop: table with sticky header --}}
+            <div class="trainings-table-wrap d-none" id="trainings-wrap">
+                <div class="trainings-table-scroll">
+                    <table class="table trainings-table mb-0 align-middle" role="grid" aria-readonly="true">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="col-expand"></th>
+                                <th scope="col" class="col-title sortable" data-sort="title" aria-sort="none"><span class="sort-label">Title</span></th>
+                                <th scope="col" class="col-type">Type of L&amp;D</th>
+                                <th scope="col" class="col-provider">Provider</th>
+                                <th scope="col" class="col-venue">Venue</th>
+                                <th scope="col" class="col-duration sortable" data-sort="start_date" aria-sort="descending"><span class="sort-label">Duration</span></th>
+                                <th scope="col" class="col-hrs text-end sortable" data-sort="hours" aria-sort="none"><span class="sort-label">Hrs</span></th>
+                                <th scope="col" class="col-actions text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trainings-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="trainings-pagination-wrap d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2 pt-2 border-top">
+                    <div class="trainings-pagination-info text-muted small" id="trainings-pagination-info" aria-live="polite"></div>
+                    <nav class="trainings-pagination" id="trainings-pagination" aria-label="Trainings pagination"></nav>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="small text-muted mb-0" for="trainings-per-page">Per page</label>
+                        <select id="trainings-per-page" class="form-select form-select-sm" style="width: auto;" aria-label="Rows per page">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Mobile: stacked cards --}}
+            <div class="trainings-cards-wrap d-none" id="trainings-cards-wrap">
+                <div id="trainings-cards"></div>
+                <div class="trainings-pagination-wrap d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-2 border-top">
+                    <div class="trainings-pagination-info text-muted small" id="trainings-cards-pagination-info"></div>
+                    <nav class="trainings-pagination" id="trainings-cards-pagination" aria-label="Trainings pagination"></nav>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="small text-muted mb-0" for="trainings-cards-per-page">Per page</label>
+                        <select id="trainings-cards-per-page" class="form-select form-select-sm" style="width: auto;">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -123,6 +233,27 @@
                     </div>
                     <button type="submit" class="btn btn-deped" id="btn-save-attendance">Save</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal: Delete training from my record (confirmation) --}}
+<div class="modal fade" id="modalDeleteTraining" tabindex="-1" aria-labelledby="modalDeleteTrainingTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDeleteTrainingTitle">Remove from my record</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Remove "<span id="delete-training-title"></span>" from your record? This cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="btn-confirm-delete-training">
+                    <i class="bi bi-trash me-1"></i> Remove
+                </button>
             </div>
         </div>
     </div>
@@ -175,18 +306,22 @@
                                 <input type="text" name="title" class="form-control" required>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label">Type</label>
-                                <select name="type" class="form-select">
-                                    <option value="">—</option>
-                                    <option value="seminar">Seminar</option>
-                                    <option value="training">Training</option>
-                                    <option value="workshop">Workshop</option>
-                                    <option value="conference">Conference</option>
-                                </select>
+                                <label class="form-label">CONDUCTED/ SPONSORED BY (Write in full)</label>
+                                <input type="text" name="provider" class="form-control" maxlength="255">
                             </div>
                             <div class="mb-2">
-                                <label class="form-label">Provider</label>
-                                <input type="text" name="provider" class="form-control">
+                                <label class="form-label">Type of L&amp;D</label>
+                                <select name="type_of_ld" class="form-select">
+                                    <option value="">— Select —</option>
+                                    <option value="Managerial">Managerial</option>
+                                    <option value="Supervisory">Supervisory</option>
+                                    <option value="Technical">Technical</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-2 type-of-ld-other-wrap d-none">
+                                <label class="form-label">If Other, please specify</label>
+                                <input type="text" name="type_of_ld_specify" class="form-control" maxlength="100" placeholder="Specify type">
                             </div>
                             <div class="mb-2">
                                 <label class="form-label">Venue</label>
@@ -235,330 +370,552 @@
     const meta = document.querySelector('meta[name="csrf-token"]');
     const csrfToken = (meta && meta.getAttribute('content')) || '';
 
-    async function loadMyTrainings() {
-        const wrap = document.getElementById('trainings-wrap');
-        const loading = document.getElementById('trainings-loading');
-        const empty = document.getElementById('trainings-empty');
-        const tbody = document.getElementById('trainings-tbody');
-        const statEl = document.getElementById('stat-my-trainings');
-
-        function showLoading() {
-            if (loading) { loading.classList.remove('d-none'); loading.textContent = 'Loading...'; }
-            if (wrap) wrap.classList.add('d-none');
-            if (empty) empty.classList.add('d-none');
-        }
-        function hideLoadingShowError(msg) {
-            if (loading) {
-                loading.classList.remove('d-none');
-                loading.textContent = msg || 'Error loading data.';
-            }
-            if (wrap) wrap.classList.add('d-none');
-            if (empty) empty.classList.add('d-none');
-        }
-
-        var loadingResolved = false;
-        function resolveLoading() {
-            if (loadingResolved) return;
-            loadingResolved = true;
-            if (loading) loading.classList.add('d-none');
-        }
-
-        var safetyTimer = setTimeout(function() {
-            if (loading && loading.textContent === 'Loading...') {
-                loadingResolved = true;
-                hideLoadingShowError('Request timed out. Refresh the page.');
-            }
-        }, 12000);
-
-        showLoading();
-
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(function() { controller.abort(); }, 10000);
-            const r = await fetch('/api/my/record/trainings?t=' + Date.now(), {
-                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                cache: 'no-store',
-                credentials: 'same-origin',
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            clearTimeout(safetyTimer);
-
-            var json = {};
-            try { json = await r.json(); } catch (_) { json = {}; }
-
-            resolveLoading();
-
-            if (!r.ok) {
-                hideLoadingShowError(json.message || 'Error loading data.');
-                return;
-            }
-
-            var data = Array.isArray(json.data) ? json.data : [];
-            if (statEl) statEl.textContent = data.length;
-
-            if (data.length === 0) {
-                if (empty) empty.classList.remove('d-none');
-                if (wrap) wrap.classList.add('d-none');
-                return;
-            }
-
-            if (empty) empty.classList.add('d-none');
-            if (wrap && tbody) {
-                wrap.classList.remove('d-none');
-                tbody.innerHTML = data.map(function(t) {
-                    var title = (t && t.title != null) ? String(t.title) : '';
-                    var type = (t && t.type) ? (t.type.charAt(0).toUpperCase() + t.type.slice(1).toLowerCase()) : '—';
-                    var remarks = (t && t.remarks != null) ? String(t.remarks) : '';
-                    return '<tr>' +
-                        '<td>' + escapeHtml(title) + '</td>' +
-                        '<td>' + escapeHtml(type) + '</td>' +
-                        '<td>' + escapeHtml(t && t.provider) + '</td>' +
-                        '<td>' + escapeHtml(t && t.venue) + '</td>' +
-                        '<td>' + formatDate(t && t.start_date) + '</td>' +
-                        '<td>' + formatDate(t && t.end_date) + '</td>' +
-                        '<td class="text-end">' + (t && t.hours != null ? t.hours : '—') + '</td>' +
-                        '<td>' + formatDate(t && t.attended_date) + '</td>' +
-                        '<td class="text-end align-middle">' +
-                        '<div class="d-flex align-items-center justify-content-end gap-1 flex-nowrap">' +
-                        '<button type="button" class="btn btn-outline-secondary btn-sm edit-attendance" data-id="' + (t && t.id) + '" data-title="' + escapeHtml(title) + '" data-attended="' + (t && t.attended_date ? t.attended_date : '') + '" data-remarks="' + escapeHtml(remarks) + '" title="Edit attendance"><i class="bi bi-pencil-square"></i></button>' +
-                        '<button type="button" class="btn btn-outline-danger btn-sm remove-attendance" data-id="' + (t && t.id) + '" data-title="' + escapeHtml(title) + '" title="Remove from my record"><i class="bi bi-trash"></i></button>' +
-                        '</div></td></tr>';
-                }).join('');
-            }
-        } catch (e) {
-            clearTimeout(safetyTimer);
-            resolveLoading();
-            if (e && e.name === 'AbortError') {
-                hideLoadingShowError('Request timed out. Refresh the page.');
-            } else {
-                hideLoadingShowError('Error loading data.');
-            }
-        }
-    }
-
-    function formatDate(isoStr) {
+    const DATE_DISPLAY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+    function formatDateDisplay(isoStr) {
         if (!isoStr) return '—';
-        const d = new Date(isoStr);
-        if (isNaN(d.getTime())) return '—';
-        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+        var m = String(isoStr).match(DATE_DISPLAY_RE);
+        if (!m) return isoStr;
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return (parseInt(m[3], 10)) + ' ' + months[parseInt(m[2], 10) - 1] + ' ' + m[1];
     }
 
     function escapeHtml(s) {
-        if (s == null) return '—';
-        const div = document.createElement('div');
+        if (s == null || s === '') return '—';
+        var div = document.createElement('div');
         div.textContent = s;
         return div.innerHTML;
     }
 
-    // ——— Add training modal: load existing trainings into dropdown ———
-    const modalAddMy = document.getElementById('modalAddMyTraining');
-    if (modalAddMy) {
-        modalAddMy.addEventListener('show.bs.modal', async function() {
-            const sel = document.querySelector('#form-attach-existing select[name="training_id"]');
-            if (!sel) return;
-            sel.innerHTML = '<option value="">— Select —</option>';
-            try {
-                const r = await fetch('/api/my/trainings', { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
-                const json = await r.json();
-                const data = json.data || [];
-                data.forEach(t => {
-                    const opt = document.createElement('option');
-                    opt.value = t.id;
-                    const label = t.title + (t.start_date ? ' (' + formatDate(t.start_date) + ')' : '');
-                    opt.textContent = label;
-                    sel.appendChild(opt);
-                });
-            } catch (e) {
-                console.error(e);
+    function typeOfLdLabel(typeOfLd, specify) {
+        if (!typeOfLd) return '—';
+        var base = typeOfLd;
+        if (specify && String(specify).trim()) base += ' (' + String(specify).trim() + ')';
+        return base;
+    }
+
+    // ——— Query state & URL sync ———
+    function getQueryParams() {
+        var q = document.getElementById('trainings-search');
+        var typeOfLd = document.getElementById('filter-type_of_ld');
+        var year = document.getElementById('filter-year');
+        var minH = document.getElementById('filter-min-hrs');
+        var maxH = document.getElementById('filter-max-hrs');
+        var perPageEl = document.getElementById('trainings-per-page');
+        var perPageCards = document.getElementById('trainings-cards-per-page');
+        var perPage = perPageEl ? parseInt(perPageEl.value, 10) : (perPageCards ? parseInt(perPageCards.value, 10) : 10);
+        return {
+            q: (q && q.value.trim()) || '',
+            type_of_ld: (typeOfLd && typeOfLd.value) || '',
+            year: (year && year.value) || '',
+            min_hours: (minH && minH.value) ? minH.value : '',
+            max_hours: (maxH && maxH.value) ? maxH.value : '',
+            sort: window._trainingsSort || 'start_date',
+            direction: window._trainingsDirection || 'desc',
+            page: window._trainingsPage || 1,
+            per_page: perPage
+        };
+    }
+
+    function buildQueryString(params) {
+        var parts = [];
+        if (params.q) parts.push('q=' + encodeURIComponent(params.q));
+        if (params.type_of_ld) parts.push('type_of_ld=' + encodeURIComponent(params.type_of_ld));
+        if (params.year) parts.push('year=' + encodeURIComponent(params.year));
+        if (params.min_hours) parts.push('min_hours=' + encodeURIComponent(params.min_hours));
+        if (params.max_hours) parts.push('max_hours=' + encodeURIComponent(params.max_hours));
+        if (params.sort) parts.push('sort=' + encodeURIComponent(params.sort));
+        if (params.direction) parts.push('direction=' + encodeURIComponent(params.direction));
+        if (params.page && params.page > 1) parts.push('page=' + params.page);
+        if (params.per_page && params.per_page !== 10) parts.push('per_page=' + params.per_page);
+        return parts.length ? '?' + parts.join('&') : '';
+    }
+
+    function syncUrl(params) {
+        var qs = buildQueryString(params);
+        var url = window.location.pathname + qs;
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, '', url);
+        }
+    }
+
+    function readParamsFromUrl() {
+        var search = window.location.search;
+        var params = {};
+        if (search) {
+            search.slice(1).split('&').forEach(function(pair) {
+                var i = pair.indexOf('=');
+                if (i > 0) {
+                    var k = decodeURIComponent(pair.slice(0, i));
+                    var v = decodeURIComponent(pair.slice(i + 1));
+                    params[k] = v;
+                }
+            });
+        }
+        if (params.page) window._trainingsPage = Math.max(1, parseInt(params.page, 10));
+        if (params.sort) window._trainingsSort = params.sort;
+        if (params.direction) window._trainingsDirection = params.direction;
+        var searchEl = document.getElementById('trainings-search');
+        var typeOfLdEl = document.getElementById('filter-type_of_ld');
+        var yearEl = document.getElementById('filter-year');
+        var minEl = document.getElementById('filter-min-hrs');
+        var maxEl = document.getElementById('filter-max-hrs');
+        var perEl = document.getElementById('trainings-per-page');
+        var perCards = document.getElementById('trainings-cards-per-page');
+        if (params.q && searchEl) searchEl.value = params.q;
+        if (params.type_of_ld && typeOfLdEl) typeOfLdEl.value = params.type_of_ld;
+        if (params.year && yearEl) yearEl.value = params.year;
+        if (params.min_hours && minEl) minEl.value = params.min_hours;
+        if (params.max_hours && maxEl) maxEl.value = params.max_hours;
+        if (params.per_page && perEl) perEl.value = params.per_page;
+        if (params.per_page && perCards) perCards.value = params.per_page;
+    }
+
+    // ——— Fetch & render ———
+    var loadAbort = null;
+    async function loadMyTrainings() {
+        readParamsFromUrl();
+        var params = getQueryParams();
+        var loading = document.getElementById('trainings-loading');
+        var empty = document.getElementById('trainings-empty');
+        var wrap = document.getElementById('trainings-wrap');
+        var cardsWrap = document.getElementById('trainings-cards-wrap');
+
+        function showLoading() {
+            if (loading) {
+                loading.classList.remove('d-none');
+                var p = loading.querySelector('p');
+                if (p) p.textContent = 'Loading…';
+            }
+            if (wrap) wrap.classList.add('d-none');
+            if (cardsWrap) cardsWrap.classList.add('d-none');
+            if (empty) empty.classList.add('d-none');
+        }
+        function showError(msg) {
+            if (loading) { loading.classList.remove('d-none'); loading.querySelector('p').textContent = msg || 'Error loading data.'; }
+            if (wrap) wrap.classList.add('d-none');
+            if (cardsWrap) cardsWrap.classList.add('d-none');
+            if (empty) empty.classList.add('d-none');
+        }
+
+        if (loadAbort) loadAbort.abort();
+        loadAbort = new AbortController();
+        showLoading();
+
+        try {
+            var qs = buildQueryString(params);
+            var r = await fetch('/api/my/record/trainings' + qs, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+                signal: loadAbort.signal
+            });
+            var json = await r.json().catch(function() { return {}; });
+            if (loading) loading.classList.add('d-none');
+
+            if (!r.ok) {
+                showError(json.message || 'Error loading data.');
+                return;
+            }
+
+            var data = json.data || [];
+            var meta = json.meta || {};
+            window._trainingsSort = meta.sort || 'start_date';
+            window._trainingsDirection = meta.direction || 'desc';
+            window._trainingsPage = meta.current_page || 1;
+
+            syncUrl(getQueryParams());
+
+            if (data.length === 0 && (meta.total === undefined || meta.total === 0)) {
+                if (empty) {
+                    empty.classList.remove('d-none');
+                    var ep = empty.querySelector('p');
+                    if (ep) ep.textContent = 'No trainings added yet.';
+                }
+                if (wrap) { wrap.classList.add('d-none'); var tb = document.getElementById('trainings-tbody'); if (tb) tb.innerHTML = ''; }
+                if (cardsWrap) { cardsWrap.classList.add('d-none'); var crd = document.getElementById('trainings-cards'); if (crd) crd.innerHTML = ''; }
+                return;
+            }
+
+            if (empty) empty.classList.add('d-none');
+            renderTable(data, meta);
+            renderCards(data, meta);
+            renderPagination(meta);
+            updateSortIndicators();
+            bindRowExpand();
+        } catch (e) {
+            if (e.name === 'AbortError') return;
+            if (loading) loading.classList.add('d-none');
+            showError('Error loading data.');
+        }
+    }
+
+    function renderTable(data, meta) {
+        var wrap = document.getElementById('trainings-wrap');
+        var tbody = document.getElementById('trainings-tbody');
+        if (!wrap || !tbody) return;
+        var rows = [];
+        data.forEach(function(t, idx) {
+            var title = (t && t.title != null) ? String(t.title) : '';
+            var titleDisplay = title.length > 50 ? title.slice(0, 50) + '…' : title;
+            var typeOfLd = typeOfLdLabel(t && t.type_of_ld, t && t.type_of_ld_specify);
+            var provider = (t && t.provider) ? String(t.provider) : '—';
+            var venue = (t && t.venue) ? String(t.venue) : '—';
+            var duration = (t.start_date_display || t.start_date) && (t.end_date_display || t.end_date)
+                ? (t.start_date_display || formatDateDisplay(t.start_date)) + ' – ' + (t.end_date_display || formatDateDisplay(t.end_date))
+                : (t.start_date_display || formatDateDisplay(t.start_date)) || '—';
+            var hrs = (t && t.hours != null) ? t.hours : '—';
+            var remarks = (t && t.remarks != null) ? String(t.remarks) : '';
+            var attDisplay = t.attended_date_display || (t.attended_date ? formatDateDisplay(t.attended_date) : null) || '—';
+            var fullDetail = 'Provider: ' + (t.provider || '—') + '\nVenue: ' + (t.venue || '—') + '\nStart: ' + (t.start_date_display || '—') + '\nEnd: ' + (t.end_date_display || '—') + '\nAttended: ' + attDisplay + '\nHours: ' + (t.hours != null ? t.hours : '—') + (remarks ? '\nRemarks: ' + remarks : '');
+            rows.push('<tr class="trainings-data-row" data-id="' + (t && t.id) + '" data-index="' + idx + '" tabindex="0" role="button">');
+            rows.push('<td class="col-expand"><button type="button" class="btn btn-link btn-sm p-0 text-secondary expand-row" aria-label="Expand row" data-index="' + idx + '"><i class="bi bi-chevron-right"></i></button></td>');
+            rows.push('<td class="col-title"><span class="text-truncate-cell d-inline-block" title="' + escapeHtml(title) + '">' + escapeHtml(titleDisplay) + '</span></td>');
+            rows.push('<td class="col-type">' + escapeHtml(typeOfLd) + '</td>');
+            rows.push('<td class="col-provider"><span class="text-truncate-cell d-inline-block" title="' + escapeHtml(provider) + '">' + escapeHtml(provider) + '</span></td>');
+            rows.push('<td class="col-venue"><span class="text-truncate-cell d-inline-block" title="' + escapeHtml(venue) + '">' + escapeHtml(venue) + '</span></td>');
+            rows.push('<td class="col-duration">' + escapeHtml(duration) + '</td>');
+            rows.push('<td class="col-hrs text-end">' + (typeof hrs === 'number' ? hrs : escapeHtml(hrs)) + '</td>');
+            rows.push('<td class="col-actions text-end"><div class="d-flex justify-content-end gap-1">');
+            rows.push('<button type="button" class="btn btn-outline-secondary btn-sm btn-action-icon edit-attendance" data-id="' + (t && t.id) + '" data-title="' + escapeHtml(title) + '" data-attended="' + (t && t.attended_date ? t.attended_date : '') + '" data-remarks="' + escapeHtml(remarks) + '" title="Edit attendance" aria-label="Edit"><i class="bi bi-pencil-square"></i></button>');
+            rows.push('<button type="button" class="btn btn-outline-secondary btn-sm btn-action-icon btn-delete remove-attendance" data-id="' + (t && t.id) + '" data-title="' + escapeHtml(title) + '" title="Remove from my record" aria-label="Remove"><i class="bi bi-trash"></i></button>');
+            rows.push('</div></td></tr>');
+            rows.push('<tr class="row-detail d-none" data-detail-for="' + (t && t.id) + '" aria-hidden="true"><td colspan="8"><div class="detail-grid"><span class="detail-label">Title</span><span>' + escapeHtml(title) + '</span><span class="detail-label">Provider</span><span>' + escapeHtml(provider) + '</span><span class="detail-label">Venue</span><span>' + escapeHtml(venue) + '</span><span class="detail-label">Start</span><span>' + (t.start_date_display || formatDateDisplay(t.start_date)) + '</span><span class="detail-label">End</span><span>' + (t.end_date_display || formatDateDisplay(t.end_date)) + '</span><span class="detail-label">Attended</span><span>' + attDisplay + '</span><span class="detail-label">Hours</span><span>' + (t.hours != null ? t.hours : '—') + '</span>' + (remarks ? '<span class="detail-label">Remarks</span><span>' + escapeHtml(remarks) + '</span>' : '') + '</div></td></tr>');
+        });
+        tbody.innerHTML = rows.join('');
+        wrap.classList.remove('d-none');
+        if (window.innerWidth < 768) {
+            wrap.classList.add('d-none');
+            if (cardsWrap) cardsWrap.classList.remove('d-none');
+        }
+    }
+
+    function renderCards(data, meta) {
+        var wrap = document.getElementById('trainings-cards-wrap');
+        var container = document.getElementById('trainings-cards');
+        if (!wrap || !container) return;
+        container.innerHTML = data.map(function(t) {
+            var title = (t && t.title != null) ? String(t.title) : '';
+            var typeOfLd = typeOfLdLabel(t && t.type_of_ld, t && t.type_of_ld_specify);
+            var duration = (t.start_date_display || formatDateDisplay(t.start_date)) + (t.end_date_display || t.end_date ? ' – ' + (t.end_date_display || formatDateDisplay(t.end_date)) : '');
+            var remarks = (t && t.remarks != null) ? String(t.remarks) : '';
+            return '<div class="trainings-card-mobile" data-id="' + (t && t.id) + '">' +
+                '<div class="card-mobile-title">' + escapeHtml(title) + '</div>' +
+                '<div class="card-mobile-row"><span class="card-mobile-label">Type of L&D</span><span>' + escapeHtml(typeOfLd) + '</span></div>' +
+                '<div class="card-mobile-row"><span class="card-mobile-label">Provider</span><span>' + escapeHtml(t && t.provider) + '</span></div>' +
+                '<div class="card-mobile-row"><span class="card-mobile-label">Venue</span><span>' + escapeHtml(t && t.venue) + '</span></div>' +
+                '<div class="card-mobile-row"><span class="card-mobile-label">Duration</span><span>' + escapeHtml(duration) + '</span></div>' +
+                '<div class="card-mobile-row"><span class="card-mobile-label">Hrs</span><span>' + (t.hours != null ? t.hours : '—') + '</span></div>' +
+                (remarks ? '<div class="card-mobile-row"><span class="card-mobile-label">Remarks</span><span>' + escapeHtml(remarks) + '</span></div>' : '') +
+                '<div class="card-mobile-actions">' +
+                '<button type="button" class="btn btn-outline-secondary btn-sm edit-attendance" data-id="' + (t && t.id) + '" data-title="' + escapeHtml(title) + '" data-attended="' + (t && t.attended_date ? t.attended_date : '') + '" data-remarks="' + escapeHtml(remarks) + '" title="Edit attendance"><i class="bi bi-pencil-square me-1"></i>Edit</button>' +
+                '<button type="button" class="btn btn-outline-secondary btn-sm btn-delete remove-attendance" data-id="' + (t && t.id) + '" data-title="' + escapeHtml(title) + '" title="Remove from my record"><i class="bi bi-trash me-1"></i>Remove</button>' +
+                '</div></div>';
+        }).join('');
+        if (window.innerWidth < 768 && data.length > 0) {
+            wrap.classList.remove('d-none');
+        }
+    }
+
+    function renderPagination(meta) {
+        var total = meta.total || 0;
+        var from = meta.from || 0;
+        var to = meta.to || 0;
+        var current = meta.current_page || 1;
+        var last = meta.last_page || 1;
+        var perPage = meta.per_page || 10;
+        var info = 'Showing ' + (total ? (from + '–' + to + ' of ' + total) : '0') + ' ';
+        document.getElementById('trainings-pagination-info').textContent = info;
+        var cardsInfo = document.getElementById('trainings-cards-pagination-info');
+        if (cardsInfo) cardsInfo.textContent = info;
+
+        function makePageNav(id) {
+            var nav = document.getElementById(id);
+            if (!nav) return;
+            nav.innerHTML = '';
+            if (last <= 1) return;
+            var ul = document.createElement('ul');
+            ul.className = 'pagination pagination-sm mb-0 flex-wrap';
+            function addPage(num, label) {
+                if (num < 1 || num > last) return;
+                var li = document.createElement('li');
+                li.className = 'page-item' + (num === current ? ' active' : '');
+                var a = document.createElement('a');
+                a.href = '#';
+                a.className = 'page-link';
+                a.textContent = label;
+                a.setAttribute('aria-label', 'Page ' + num);
+                a.addEventListener('click', function(e) { e.preventDefault(); window._trainingsPage = num; loadMyTrainings(); });
+                li.appendChild(a);
+                ul.appendChild(li);
+            }
+            addPage(1, '1');
+            if (current > 3) { var ell = document.createElement('li'); ell.className = 'page-item disabled'; ell.innerHTML = '<span class="page-link">…</span>'; ul.appendChild(ell); }
+            if (current > 2) addPage(current - 1, String(current - 1));
+            if (current > 1 && current < last) addPage(current, String(current));
+            if (current < last - 1) addPage(current + 1, String(current + 1));
+            if (current < last - 2) { var ell2 = document.createElement('li'); ell2.className = 'page-item disabled'; ell2.innerHTML = '<span class="page-link">…</span>'; ul.appendChild(ell2); }
+            if (last > 1) addPage(last, String(last));
+            nav.appendChild(ul);
+        }
+        makePageNav('trainings-pagination');
+        makePageNav('trainings-cards-pagination');
+    }
+
+    function updateSortIndicators() {
+        var sort = window._trainingsSort || 'start_date';
+        var dir = window._trainingsDirection || 'desc';
+        document.querySelectorAll('.trainings-table .sortable').forEach(function(th) {
+            var col = th.getAttribute('data-sort');
+            th.setAttribute('aria-sort', col === sort ? (dir === 'asc' ? 'ascending' : 'descending') : 'none');
+            var iconAsc = th.querySelector('.sort-icon-asc');
+            var iconDesc = th.querySelector('.sort-icon-desc');
+            if (iconAsc) iconAsc.style.display = (col === sort && dir === 'asc') ? 'inline' : 'none';
+            if (iconDesc) iconDesc.style.display = (col === sort && dir === 'desc') ? 'inline' : 'none';
+        });
+    }
+
+    function bindRowExpand() {
+        var tbody = document.getElementById('trainings-tbody');
+        if (!tbody) return;
+        tbody.addEventListener('click', function(e) {
+            var row = e.target.closest('.trainings-data-row');
+            var expandBtn = e.target.closest('.expand-row');
+            if (expandBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                var idx = expandBtn.getAttribute('data-index');
+                var dataRow = tbody.querySelector('.trainings-data-row[data-index="' + idx + '"]');
+                var id = dataRow ? dataRow.getAttribute('data-id') : null;
+                if (!id) return;
+                var detail = tbody.querySelector('.row-detail[data-detail-for="' + id + '"]');
+                if (detail) {
+                    detail.classList.toggle('d-none');
+                    detail.setAttribute('aria-hidden', detail.classList.contains('d-none'));
+                    var icon = expandBtn.querySelector('i.bi');
+                    if (icon) icon.className = detail.classList.contains('d-none') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
+                }
+                return;
+            }
+            if (row && !e.target.closest('.edit-attendance') && !e.target.closest('.remove-attendance')) {
+                var id = row.getAttribute('data-id');
+                var detail = tbody.querySelector('.row-detail[data-detail-for="' + id + '"]');
+                var expandBtnInRow = row.querySelector('.expand-row');
+                if (detail) {
+                    detail.classList.toggle('d-none');
+                    detail.setAttribute('aria-hidden', detail.classList.contains('d-none'));
+                    if (expandBtnInRow) {
+                        var icon = expandBtnInRow.querySelector('i.bi');
+                        if (icon) icon.className = detail.classList.contains('d-none') ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
+                    }
+                }
+                document.querySelectorAll('.trainings-table tbody tr.selected').forEach(function(r) { r.classList.remove('selected'); });
+                row.classList.add('selected');
             }
         });
     }
 
-    // ——— Attach to existing training ———
-    document.getElementById('form-attach-existing').addEventListener('submit', async function(e) {
+    // Sortable headers: add sort icons (preserve .sort-label)
+    (function initSortHeaders() {
+        document.querySelectorAll('.trainings-table .sortable').forEach(function(th) {
+            var label = th.querySelector('.sort-label');
+            var text = label ? label.textContent : th.textContent.trim();
+            th.innerHTML = '<span class="sort-label">' + text + '</span> <span class="sort-icon sort-icon-asc bi bi-chevron-up" aria-hidden="true"></span><span class="sort-icon sort-icon-desc bi bi-chevron-down" aria-hidden="true"></span>';
+        });
+    })();
+
+    document.querySelector('.trainings-table-wrap') && document.querySelector('.trainings-table-wrap').addEventListener('click', function(e) {
+        var th = e.target.closest('th.sortable');
+        if (!th) return;
         e.preventDefault();
-        const btn = document.getElementById('btn-attach-existing');
-        const form = e.target;
-        const payload = {
-            training_id: parseInt(form.training_id.value, 10),
-            attended_date: form.attended_date.value || null,
-            remarks: form.remarks.value || null
-        };
-        btn.disabled = true;
-        try {
-            const res = await fetch('/api/my/trainings/attach', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || 'Failed to add');
-            bootstrap.Modal.getInstance(document.getElementById('modalAddMyTraining')).hide();
-            form.reset();
-            loadMyTrainings();
-            alert('Training added to your record.');
-        } catch (err) {
-            alert(err.message || 'Could not add training. You may already be assigned to this training.');
-        } finally {
-            btn.disabled = false;
-        }
+        var col = th.getAttribute('data-sort');
+        if (!col) return;
+        window._trainingsSort = col;
+        window._trainingsDirection = (window._trainingsDirection === 'asc' && window._trainingsSort === col) ? 'desc' : 'asc';
+        window._trainingsPage = 1;
+        loadMyTrainings();
     });
 
-    // ——— Add new training and attach self ———
-    document.getElementById('form-add-new-training').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const btn = document.getElementById('btn-add-new-training');
-        const form = e.target;
-        const payload = {
-            title: form.title.value.trim(),
-            type: form.type.value || null,
-            provider: form.provider.value.trim() || null,
-            venue: form.venue.value.trim() || null,
-            start_date: form.start_date.value,
-            end_date: form.end_date.value,
-            hours: form.hours.value ? parseInt(form.hours.value, 10) : null,
-            description: form.description.value.trim() || null,
-            attended_date: form.attended_date.value || null,
-            remarks: form.remarks.value.trim() || null
-        };
-        btn.disabled = true;
-        try {
-            const res = await fetch('/api/my/trainings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || 'Failed to add');
-            bootstrap.Modal.getInstance(document.getElementById('modalAddMyTraining')).hide();
-            form.reset();
-            loadMyTrainings();
-            alert('Training added to your record.');
-        } catch (err) {
-            alert(err.message || 'Could not add training.');
-        } finally {
-            btn.disabled = false;
-        }
+    // Search, filters, per_page: debounced or on change
+    var searchTimeout = null;
+    document.getElementById('trainings-search') && document.getElementById('trainings-search').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() { window._trainingsPage = 1; loadMyTrainings(); }, 350);
+    });
+    ['filter-type_of_ld', 'filter-year', 'filter-min-hrs', 'filter-max-hrs'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', function() { window._trainingsPage = 1; loadMyTrainings(); });
+    });
+    document.getElementById('trainings-per-page') && document.getElementById('trainings-per-page').addEventListener('change', function() {
+        window._trainingsPage = 1;
+        var per = document.getElementById('trainings-cards-per-page');
+        if (per) per.value = this.value;
+        loadMyTrainings();
+    });
+    document.getElementById('trainings-cards-per-page') && document.getElementById('trainings-cards-per-page').addEventListener('change', function() {
+        window._trainingsPage = 1;
+        var per = document.getElementById('trainings-per-page');
+        if (per) per.value = this.value;
+        loadMyTrainings();
     });
 
-    // ——— Edit & Remove actions: delegate on table container so button clicks are handled ———
-    var trainingsWrapEl = document.getElementById('trainings-wrap');
-    if (trainingsWrapEl) {
-        trainingsWrapEl.addEventListener('click', function(e) {
-            var editBtn = e.target.closest('.edit-attendance');
-            if (editBtn) {
-                e.preventDefault();
-                e.stopPropagation();
-                var id = editBtn.getAttribute('data-id');
-                var title = editBtn.getAttribute('data-title') || 'Training';
-                var attended = editBtn.getAttribute('data-attended') || '';
-                var remarks = editBtn.getAttribute('data-remarks') || '';
-                var tidEl = document.getElementById('edit-attendance-training-id');
-                var titleEl = document.getElementById('edit-attendance-training-title');
-                var dateEl = document.getElementById('edit-attendance-date');
-                var remarksEl = document.getElementById('edit-attendance-remarks');
-                if (tidEl) tidEl.value = id || '';
-                if (titleEl) titleEl.textContent = title;
-                if (dateEl) dateEl.value = attended;
-                if (remarksEl) remarksEl.value = remarks;
-                var modalEl = document.getElementById('modalEditAttendance');
-                if (modalEl && typeof bootstrap !== 'undefined') {
-                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                }
-                return;
-            }
+    // Edit & Delete: delegate on document so cards and table both work
+    document.body.addEventListener('click', function(e) {
+        var editBtn = e.target.closest('.edit-attendance');
+        if (editBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            var id = editBtn.getAttribute('data-id');
+            var title = editBtn.getAttribute('data-title') || 'Training';
+            var attended = editBtn.getAttribute('data-attended') || '';
+            var remarks = editBtn.getAttribute('data-remarks') || '';
+            document.getElementById('edit-attendance-training-id').value = id || '';
+            document.getElementById('edit-attendance-training-title').textContent = title;
+            document.getElementById('edit-attendance-date').value = attended;
+            document.getElementById('edit-attendance-remarks').value = remarks;
+            var modal = document.getElementById('modalEditAttendance');
+            if (modal && typeof bootstrap !== 'undefined') bootstrap.Modal.getOrCreateInstance(modal).show();
+            return;
+        }
         var removeBtn = e.target.closest('.remove-attendance');
         if (removeBtn) {
             e.preventDefault();
             e.stopPropagation();
             var id = removeBtn.getAttribute('data-id');
             var title = removeBtn.getAttribute('data-title') || 'this training';
-            if (!confirm("Remove \"" + title + "\" from your record?")) return;
-            removeBtn.disabled = true;
-            fetch('/api/my/record/trainings/' + id, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin'
-            })
-            .then(function(res) { return res.json().catch(function() { return {}; }).then(function(data) { return { res: res, data: data }; }); })
-            .then(function(o) {
-                if (!o.res.ok) throw new Error(o.data.message || 'Failed to remove');
-                if (typeof loadMyTrainings === 'function') loadMyTrainings();
-                alert('Removed from your record.');
-            })
-            .catch(function(err) {
-                alert(err.message || 'Could not remove.');
-            })
-            .finally(function() {
-                removeBtn.disabled = false;
-            });
+            window._deleteTrainingId = id;
+            document.getElementById('delete-training-title').textContent = title;
+            var modal = document.getElementById('modalDeleteTraining');
+            if (modal && typeof bootstrap !== 'undefined') bootstrap.Modal.getOrCreateInstance(modal).show();
         }
+    });
+
+    document.getElementById('btn-confirm-delete-training') && document.getElementById('btn-confirm-delete-training').addEventListener('click', function() {
+        var id = window._deleteTrainingId;
+        if (!id) return;
+        this.disabled = true;
+        var self = this;
+        fetch('/api/my/record/trainings/' + id, {
+            method: 'DELETE',
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+        })
+        .then(function(r) { return r.json().catch(function() { return {}; }).then(function(data) { return { res: r, data: data }; }); })
+        .then(function(o) {
+            if (!o.res.ok) throw new Error(o.data.message || 'Failed to remove');
+            if (typeof bootstrap !== 'undefined') bootstrap.Modal.getInstance(document.getElementById('modalDeleteTraining')).hide();
+            loadMyTrainings();
+            alert('Removed from your record.');
+        })
+        .catch(function(err) { alert(err.message || 'Could not remove.'); })
+        .finally(function() { self.disabled = false; });
+    });
+
+    document.getElementById('form-edit-attendance') && document.getElementById('form-edit-attendance').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var id = document.getElementById('edit-attendance-training-id').value;
+        if (!id) { alert('Missing training.'); return; }
+        var form = e.target;
+        var payload = { attended_date: (form.attended_date && form.attended_date.value) || null, remarks: (form.remarks && form.remarks.value ? form.remarks.value.trim() : null) || null };
+        var btn = document.getElementById('btn-save-attendance');
+        if (btn) btn.disabled = true;
+        fetch('/api/my/record/trainings/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+        })
+        .then(function(r) { return r.json().catch(function() { return {}; }).then(function(data) { return { res: r, data: data }; }); })
+        .then(function(o) {
+            if (!o.res.ok) throw new Error(o.data.message || 'Failed to update');
+            bootstrap.Modal.getInstance(document.getElementById('modalEditAttendance')).hide();
+            loadMyTrainings();
+            alert('Attendance updated.');
+        })
+        .catch(function(err) { alert(err.message || 'Could not update.'); })
+        .finally(function() { if (btn) btn.disabled = false; });
+    });
+
+    // Add training modal: load existing dropdown
+    var modalAddMy = document.getElementById('modalAddMyTraining');
+    if (modalAddMy) {
+        modalAddMy.addEventListener('show.bs.modal', async function() {
+            var sel = document.querySelector('#form-attach-existing select[name="training_id"]');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">— Select —</option>';
+            try {
+                var r = await fetch('/api/my/trainings', { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+                var json = await r.json();
+                (json.data || []).forEach(function(t) {
+                    var opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = t.title + (t.start_date ? ' (' + formatDateDisplay(t.start_date) + ')' : '');
+                    sel.appendChild(opt);
+                });
+            } catch (err) { console.error(err); }
         });
     }
 
-    var formEditAttendance = document.getElementById('form-edit-attendance');
-    if (formEditAttendance) {
-        formEditAttendance.addEventListener('submit', function(e) {
-            e.preventDefault();
-            var idEl = document.getElementById('edit-attendance-training-id');
-            var id = idEl ? idEl.value : '';
-            if (!id) { alert('Missing training.'); return; }
-            var form = e.target;
-            var payload = {
-                attended_date: form.attended_date && form.attended_date.value ? form.attended_date.value : null,
-                remarks: (form.remarks && form.remarks.value ? form.remarks.value.trim() : null) || null
-            };
-            var btn = document.getElementById('btn-save-attendance');
-            if (btn) btn.disabled = true;
-            fetch('/api/my/record/trainings/' + id, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify(payload)
-            })
-            .then(function(r) { return r.json().catch(function() { return {}; }).then(function(data) { return { res: r, data: data }; }); })
-            .then(function(o) {
-                if (!o.res.ok) throw new Error(o.data.message || 'Failed to update');
-                var modalEl = document.getElementById('modalEditAttendance');
-                if (modalEl && typeof bootstrap !== 'undefined') {
-                    var inst = bootstrap.Modal.getInstance(modalEl);
-                    if (inst) inst.hide();
-                }
-                if (typeof loadMyTrainings === 'function') loadMyTrainings();
-                alert('Attendance updated.');
-            })
-            .catch(function(err) {
-                alert(err.message || 'Could not update.');
-            })
-            .finally(function() {
-                if (btn) btn.disabled = false;
+    document.getElementById('form-attach-existing') && document.getElementById('form-attach-existing').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var btn = document.getElementById('btn-attach-existing');
+        var form = e.target;
+        btn.disabled = true;
+        try {
+            var res = await fetch('/api/my/trainings/attach', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ training_id: parseInt(form.training_id.value, 10), attended_date: form.attended_date.value || null, remarks: form.remarks.value || null })
             });
-        });
-    }
+            var data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Failed to add');
+            bootstrap.Modal.getInstance(document.getElementById('modalAddMyTraining')).hide();
+            form.reset();
+            loadMyTrainings();
+            alert('Training added to your record.');
+        } catch (err) { alert(err.message || 'Could not add training.'); }
+        finally { btn.disabled = false; }
+    });
 
-    // Initial data is server-rendered; only call API when refreshing after add/edit/delete
+    var personnelTypeOfLd = document.querySelector('#form-add-new-training [name="type_of_ld"]');
+    if (personnelTypeOfLd) personnelTypeOfLd.addEventListener('change', function() {
+        var wrap = document.querySelector('#modalAddMyTraining .type-of-ld-other-wrap');
+        if (wrap) wrap.classList.toggle('d-none', this.value !== 'Other');
+    });
+
+    document.getElementById('form-add-new-training') && document.getElementById('form-add-new-training').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var btn = document.getElementById('btn-add-new-training');
+        var form = e.target;
+        btn.disabled = true;
+        try {
+            var res = await fetch('/api/my/trainings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({
+                    title: form.title.value.trim(),
+                    type_of_ld: form.type_of_ld && form.type_of_ld.value || null,
+                    type_of_ld_specify: form.type_of_ld_specify && form.type_of_ld_specify.value.trim() || null,
+                    provider: form.provider.value.trim() || null,
+                    venue: form.venue.value.trim() || null,
+                    start_date: form.start_date.value,
+                    end_date: form.end_date.value,
+                    hours: form.hours.value ? parseInt(form.hours.value, 10) : null,
+                    description: form.description.value.trim() || null,
+                    attended_date: form.attended_date.value || null,
+                    remarks: form.remarks.value.trim() || null
+                })
+            });
+            var data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Failed to add');
+            bootstrap.Modal.getInstance(document.getElementById('modalAddMyTraining')).hide();
+            form.reset();
+            loadMyTrainings();
+            alert('Training added to your record.');
+        } catch (err) { alert(err.message || 'Could not add training.'); }
+        finally { btn.disabled = false; }
+    });
+
     window.refreshMyTrainings = loadMyTrainings;
+    loadMyTrainings();
 })();
 </script>
 @endpush

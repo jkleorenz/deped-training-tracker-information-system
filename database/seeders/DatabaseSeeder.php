@@ -88,7 +88,7 @@ class DatabaseSeeder extends Seeder
         $trainings = [
             Training::create([
                 'title' => 'K to 12 Curriculum Training',
-                'type' => 'training',
+                'type_of_ld' => 'training',
                 'provider' => 'DepEd Regional Office',
                 'venue' => 'Regional Training Center',
                 'start_date' => now()->subMonths(3),
@@ -98,7 +98,7 @@ class DatabaseSeeder extends Seeder
             ]),
             Training::create([
                 'title' => 'ICT Integration in Teaching',
-                'type' => 'seminar',
+                'type_of_ld' => 'seminar',
                 'provider' => 'DepEd ICT Division',
                 'venue' => 'Online',
                 'start_date' => now()->subMonths(2),
@@ -108,7 +108,7 @@ class DatabaseSeeder extends Seeder
             ]),
             Training::create([
                 'title' => 'Classroom Management Workshop',
-                'type' => 'workshop',
+                'type_of_ld' => 'workshop',
                 'provider' => 'Schools Division Office',
                 'venue' => 'Division Conference Hall',
                 'start_date' => now()->subMonth(),
@@ -117,7 +117,7 @@ class DatabaseSeeder extends Seeder
             ]),
             Training::create([
                 'title' => 'Reading and Numeracy Program Seminar',
-                'type' => 'seminar',
+                'type_of_ld' => 'seminar',
                 'provider' => 'Bureau of Learning Delivery',
                 'venue' => 'Division Office',
                 'start_date' => now()->subMonths(4),
@@ -127,7 +127,7 @@ class DatabaseSeeder extends Seeder
             ]),
             Training::create([
                 'title' => 'Disaster Risk Reduction and Management',
-                'type' => 'training',
+                'type_of_ld' => 'training',
                 'provider' => 'DepEd DRRM Unit',
                 'venue' => 'Regional Training Center',
                 'start_date' => now()->subMonths(5),
@@ -137,7 +137,7 @@ class DatabaseSeeder extends Seeder
             ]),
             Training::create([
                 'title' => 'Gender and Development (GAD) Seminar',
-                'type' => 'seminar',
+                'type_of_ld' => 'seminar',
                 'provider' => 'DepEd GAD Focal',
                 'venue' => 'Online',
                 'start_date' => now()->subMonths(2)->addDays(5),
@@ -147,7 +147,7 @@ class DatabaseSeeder extends Seeder
             ]),
             Training::create([
                 'title' => 'Mental Health and Psychosocial Support',
-                'type' => 'workshop',
+                'type_of_ld' => 'workshop',
                 'provider' => 'DepEd Health and Nutrition',
                 'venue' => 'Division Conference Hall',
                 'start_date' => now()->subWeeks(3),

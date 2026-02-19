@@ -33,7 +33,7 @@
             <tr>
                 <th>#</th>
                 <th>Title</th>
-                <th>Type</th>
+                <th>Type of L&amp;D</th>
                 <th>Provider</th>
                 <th>Venue</th>
                 <th>Start Date</th>
@@ -47,7 +47,7 @@
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $t->title }}</td>
-                <td>{{ $t->type ? ucfirst($t->type) : '—' }}</td>
+                <td>{{ $t->type_of_ld ? $t->type_of_ld . ($t->type_of_ld_specify ? ' (' . $t->type_of_ld_specify . ')' : '') : '—' }}</td>
                 <td>{{ $t->provider ?? '—' }}</td>
                 <td>{{ $t->venue ?? '—' }}</td>
                 <td>{{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '—' }}</td>

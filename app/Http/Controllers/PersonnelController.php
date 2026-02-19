@@ -45,7 +45,12 @@ class PersonnelController extends Controller
             });
         }
 
-        $personnel = $query->paginate(15)->withQueryString();
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 25, 50], true)) {
+            $perPage = 10;
+        }
+        $perPage = min(max($perPage, 1), 100);
+        $personnel = $query->paginate($perPage)->withQueryString();
         $personnelList = User::where('role', User::ROLE_PERSONNEL)->orderBy('name')->get(['id', 'name']);
 
         return view('personnel.index', [
@@ -111,8 +116,8 @@ class PersonnelController extends Controller
         if ($request->filled('date_to')) {
             $query->where('trainings.end_date', '<=', $request->input('date_to'));
         }
-        if ($request->filled('type')) {
-            $query->where('trainings.type', $request->input('type'));
+        if ($request->filled('type_of_ld')) {
+            $query->where('trainings.type_of_ld', $request->input('type_of_ld'));
         }
 
         $trainings = $query->orderBy('trainings.start_date', 'desc')->get();
@@ -121,7 +126,8 @@ class PersonnelController extends Controller
             return [
                 'id' => $training->id,
                 'title' => $training->title,
-                'type' => $training->type,
+                'type_of_ld' => $training->type_of_ld,
+                'type_of_ld_specify' => $training->type_of_ld_specify,
                 'provider' => $training->provider,
                 'venue' => $training->venue,
                 'start_date' => $this->formatDateForApi($training->start_date),

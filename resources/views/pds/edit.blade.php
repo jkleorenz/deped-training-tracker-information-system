@@ -5,6 +5,7 @@
 @php
     $draftUrl = $isOwn ? route('pds.draft') : route('personnel.pds.draft', $user);
     $updateUrl = $isOwn ? route('pds.update') : route('personnel.pds.update', $user);
+    $importLdUrl = $isOwn ? route('api.pds.importable-trainings') : route('api.personnel.pds.importable-trainings', $user);
     $oldEligibility = old('eligibility');
     $eligibilityRows = $oldEligibility !== null
         ? array_values(array_map(fn($r) => (object) array_merge(
@@ -18,10 +19,10 @@
             : $eligibilityRows->map(fn($e) => (object) [
                 'eligibility_type' => $e->eligibility_type ?? '',
                 'rating' => $e->rating ?? '',
-                'date_exam_conferment' => $e->date_exam_conferment ? $e->date_exam_conferment->format('Y-m-d') : null,
+                'date_exam_conferment' => $e->date_exam_conferment ? \Carbon\Carbon::parse($e->date_exam_conferment)->format('Y-m-d') : null,
                 'place_exam_conferment' => $e->place_exam_conferment ?? '',
                 'license_number' => $e->license_number ?? '',
-                'license_valid_until' => $e->license_valid_until ? $e->license_valid_until->format('Y-m-d') : null,
+                'license_valid_until' => $e->license_valid_until ? \Carbon\Carbon::parse($e->license_valid_until)->format('Y-m-d') : null,
             ])->values()->all();
     }
     $oldWork = old('work');
@@ -35,17 +36,70 @@
         $workRows = $workRows->isEmpty()
             ? [((object) ['from_date' => null, 'to_date' => null, 'position_title' => '', 'department_agency' => '', 'status_of_appointment' => '', 'govt_service_yn' => ''])]
             : $workRows->map(fn($w) => (object) [
-                'from_date' => $w->from_date ? $w->from_date->format('Y-m-d') : null,
-                'to_date' => $w->to_date ? $w->to_date->format('Y-m-d') : null,
+                'from_date' => $w->from_date ? \Carbon\Carbon::parse($w->from_date)->format('Y-m-d') : null,
+                'to_date' => $w->to_date ? \Carbon\Carbon::parse($w->to_date)->format('Y-m-d') : null,
                 'position_title' => $w->position_title ?? '',
                 'department_agency' => $w->department_agency ?? '',
                 'status_of_appointment' => $w->status_of_appointment ?? '',
                 'govt_service_yn' => $w->govt_service_yn ?? '',
             ])->values()->all();
     }
-    $childrenInitial = $pds->children_names ? array_map('trim', preg_split('/[\r\n,]+/', $pds->children_names, -1, PREG_SPLIT_NO_EMPTY)) : [];
-    if (old('children_names')) {
-        $childrenInitial = array_map('trim', preg_split('/[\r\n,]+/', old('children_names'), -1, PREG_SPLIT_NO_EMPTY));
+    $childrenData = $pds->children_data ?? [];
+    if (old('children_data')) {
+        $decoded = is_string(old('children_data')) ? json_decode(old('children_data'), true) : old('children_data');
+        $childrenData = is_array($decoded) ? $decoded : [];
+    }
+    $childrenInitial = [];
+    foreach ($childrenData as $row) {
+        $childrenInitial[] = (object) [
+            'name' => $row['name'] ?? '',
+            'dob' => isset($row['dob']) ? (\Carbon\Carbon::parse($row['dob'])->format('Y-m-d') ?? '') : '',
+        ];
+    }
+    if (empty($childrenInitial) && ($pds->children_names || old('children_names'))) {
+        $namesStr = old('children_names', $pds->children_names);
+        $names = array_map('trim', preg_split('/[\r\n,]+/', $namesStr, -1, PREG_SPLIT_NO_EMPTY));
+        foreach ($names as $n) {
+            $childrenInitial[] = (object) ['name' => $n, 'dob' => ''];
+        }
+    }
+    $oldVoluntary = old('voluntary');
+    $voluntaryRows = $oldVoluntary !== null
+        ? array_values(array_map(fn($r) => (object) array_merge(
+            ['conducted_sponsored_by' => '', 'inclusive_dates_from' => null, 'inclusive_dates_to' => null, 'position_nature_of_work' => '', 'number_of_hours' => null],
+            is_array($r) ? $r : (array) $r
+        ), $oldVoluntary))
+        : ($pds->voluntaryWorks ?? collect())->sortBy('sort_order')->values();
+    if ($voluntaryRows instanceof \Illuminate\Support\Collection) {
+        $voluntaryRows = $voluntaryRows->isEmpty()
+            ? [((object) ['conducted_sponsored_by' => '', 'inclusive_dates_from' => null, 'inclusive_dates_to' => null, 'position_nature_of_work' => '', 'number_of_hours' => null])]
+            : $voluntaryRows->map(fn($v) => (object) [
+                'conducted_sponsored_by' => $v->conducted_sponsored_by ?? '',
+                'inclusive_dates_from' => $v->inclusive_dates_from ? \Carbon\Carbon::parse($v->inclusive_dates_from)->format('Y-m-d') : null,
+                'inclusive_dates_to' => $v->inclusive_dates_to ? \Carbon\Carbon::parse($v->inclusive_dates_to)->format('Y-m-d') : null,
+                'position_nature_of_work' => $v->position_nature_of_work ?? '',
+                'number_of_hours' => $v->number_of_hours ?? null,
+            ])->values()->all();
+    }
+    $oldLd = old('learning_development');
+    $ldRows = $oldLd !== null
+        ? array_values(array_map(fn($r) => (object) array_merge(
+            ['organization_name_address' => '', 'title_of_ld' => '', 'type_of_ld' => '', 'type_of_ld_specify' => '', 'number_of_hours' => null, 'inclusive_dates_from' => null, 'inclusive_dates_to' => null],
+            is_array($r) ? $r : (array) $r
+        ), $oldLd))
+        : ($pds->learningDevelopments ?? collect())->sortBy('sort_order')->values();
+    if ($ldRows instanceof \Illuminate\Support\Collection) {
+        $ldRows = $ldRows->isEmpty()
+            ? [((object) ['organization_name_address' => '', 'title_of_ld' => '', 'type_of_ld' => '', 'type_of_ld_specify' => '', 'number_of_hours' => null, 'inclusive_dates_from' => null, 'inclusive_dates_to' => null])]
+            : $ldRows->map(fn($l) => (object) [
+                'organization_name_address' => $l->organization_name_address ?? '',
+                'title_of_ld' => $l->title_of_ld ?? '',
+                'type_of_ld' => $l->type_of_ld ?? '',
+                'type_of_ld_specify' => $l->type_of_ld_specify ?? '',
+                'number_of_hours' => $l->number_of_hours ?? null,
+                'inclusive_dates_from' => $l->inclusive_dates_from ? \Carbon\Carbon::parse($l->inclusive_dates_from)->format('Y-m-d') : null,
+                'inclusive_dates_to' => $l->inclusive_dates_to ? \Carbon\Carbon::parse($l->inclusive_dates_to)->format('Y-m-d') : null,
+            ])->values()->all();
     }
 @endphp
 
@@ -219,10 +273,11 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mt-2">
         <div>
             <h4 class="page-title mb-1">Personal Data Sheet</h4>
-            <p class="text-muted small mb-0">Complete in 4 steps. Use <strong>Save Draft</strong> or auto-save to keep progress. PDF export matches the official PDS layout.</p>
+            <p class="text-muted small mb-0">Complete in 6 steps. Use <strong>Save Draft</strong> or auto-save to keep progress. PDF export matches the official PDS layout.</p>
         </div>
         <div class="d-flex gap-2 flex-shrink-0">
             <a href="{{ route('reports.pds-pdf', $isOwn ? [] : ['user_id' => $user->id]) }}" class="btn btn-deped" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i> Print PDS</a>
+            <a href="{{ route('reports.pds-excel', $isOwn ? [] : ['user_id' => $user->id]) }}" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel me-1"></i> Export PDS Excel</a>
             @if(!$isOwn)
                 <a href="{{ route('personnel.show', $user) }}" class="btn btn-outline-secondary">Back to profile</a>
             @endif
@@ -230,25 +285,28 @@
     </div>
 </div>
 
-{{-- 4-step stepper --}}
+{{-- 5-step stepper --}}
 <nav class="pds-stepper" aria-label="PDS steps">
     <button type="button" class="pds-stepper-item active" data-step="1" aria-current="step">
         <span class="step-num">1</span><span>Personal Information</span>
     </button>
     <button type="button" class="pds-stepper-item" data-step="2"><span class="step-num">2</span><span>Family &amp; Education</span></button>
     <button type="button" class="pds-stepper-item" data-step="3"><span class="step-num">3</span><span>Work &amp; Eligibility</span></button>
-    <button type="button" class="pds-stepper-item" data-step="4"><span class="step-num">4</span><span>Declaration</span></button>
+    <button type="button" class="pds-stepper-item" data-step="4"><span class="step-num">4</span><span>Voluntary, L&amp;D &amp; Other</span></button>
+    <button type="button" class="pds-stepper-item" data-step="5"><span class="step-num">5</span><span>Page 4 (Q34–40 &amp; References)</span></button>
+    <button type="button" class="pds-stepper-item" data-step="6"><span class="step-num">6</span><span>Declaration</span></button>
     <div class="pds-progress-bar-wrap">
-        <div class="pds-progress-bar-fill" id="pdsProgressFill" style="width: 25%;"></div>
+        <div class="pds-progress-bar-fill" id="pdsProgressFill" style="width: 17%;"></div>
     </div>
-    <span class="pds-progress-pct" id="pdsProgressPct">25%</span>
+    <span class="pds-progress-pct" id="pdsProgressPct">17%</span>
 </nav>
 
 <div class="card pds-section-card">
     <div class="card-body">
-        <form method="POST" action="{{ $updateUrl }}" id="pdsForm">
+        <form method="POST" action="{{ $updateUrl }}" id="pdsForm" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="children_names" id="pdsChildrenNamesInput" value="{{ old('children_names', $pds->children_names) }}">
+            <input type="hidden" name="children_data" id="pdsChildrenDataInput" value="{{ old('children_data', $pds->children_data ? json_encode($pds->children_data) : '') }}">
 
             @if($errors->any())
             <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center rounded-3 mb-4" role="alert" id="pdsErrorBanner">
@@ -294,7 +352,7 @@
                         <div class="row g-3">
                             <div class="col-12 col-md-4">
                                 <label class="pds-form-label">3. Date of birth (dd/mm/yyyy)</label>
-                                <input type="date" class="form-control pds-form-control" name="date_of_birth" value="{{ old('date_of_birth', $pds->date_of_birth?->format('Y-m-d')) }}">
+                                <input type="date" class="form-control pds-form-control" name="date_of_birth" value="{{ old('date_of_birth', $pds->date_of_birth ? \Carbon\Carbon::parse($pds->date_of_birth)->format('Y-m-d') : '') }}">
                             </div>
                             <div class="col-12 col-md-8">
                                 <label class="pds-form-label">4. Place of birth</label>
@@ -372,7 +430,7 @@
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label class="pds-form-label">Date of appointment</label>
-                                <input type="date" class="form-control pds-form-control" name="date_of_appointment" value="{{ old('date_of_appointment', $pds->date_of_appointment?->format('Y-m-d')) }}">
+                                <input type="date" class="form-control pds-form-control" name="date_of_appointment" value="{{ old('date_of_appointment', $pds->date_of_appointment ? \Carbon\Carbon::parse($pds->date_of_appointment)->format('Y-m-d') : '') }}">
                             </div>
                         </div>
                     </div>
@@ -467,11 +525,12 @@
                     <div class="card-header"><i class="bi bi-person-hearts"></i> II. Family Background — 22. Spouse</div>
                     <div class="card-body">
                         <div class="pds-name-box">
-                            <div class="pds-name-box-title">Surname | First name | Middle name</div>
+                            <div class="pds-name-box-title">Surname | First name | Middle name | Name extension (JR., SR.)</div>
                             <div class="row g-2">
-                                <div class="col-12 col-md-4"><input type="text" class="form-control pds-form-control" name="spouse_surname" value="{{ old('spouse_surname', $pds->spouse_surname) }}" maxlength="100" placeholder="Surname"></div>
-                                <div class="col-12 col-md-4"><input type="text" class="form-control pds-form-control" name="spouse_first_name" value="{{ old('spouse_first_name', $pds->spouse_first_name) }}" maxlength="100" placeholder="First name"></div>
-                                <div class="col-12 col-md-4"><input type="text" class="form-control pds-form-control" name="spouse_middle_name" value="{{ old('spouse_middle_name', $pds->spouse_middle_name) }}" maxlength="100" placeholder="Middle name"></div>
+                                <div class="col-12 col-md-3"><input type="text" class="form-control pds-form-control" name="spouse_surname" value="{{ old('spouse_surname', $pds->spouse_surname) }}" maxlength="100" placeholder="Surname"></div>
+                                <div class="col-12 col-md-3"><input type="text" class="form-control pds-form-control" name="spouse_first_name" value="{{ old('spouse_first_name', $pds->spouse_first_name) }}" maxlength="100" placeholder="First name"></div>
+                                <div class="col-12 col-md-3"><input type="text" class="form-control pds-form-control" name="spouse_middle_name" value="{{ old('spouse_middle_name', $pds->spouse_middle_name) }}" maxlength="100" placeholder="Middle name"></div>
+                                <div class="col-12 col-md-3"><input type="text" class="form-control pds-form-control" name="spouse_name_extension" value="{{ old('spouse_name_extension', $pds->spouse_name_extension) }}" maxlength="20" placeholder="e.g. JR., SR."></div>
                             </div>
                         </div>
                         <div class="pds-name-box">
@@ -491,7 +550,7 @@
                     </div>
                 </div>
                 <div class="pds-section-card">
-                    <div class="card-header"><i class="bi bi-people"></i> 23. Name of children (full name, list all)</div>
+                    <div class="card-header"><i class="bi bi-people"></i> 23. Name of children (full name, list all) — DATE OF BIRTH (dd/mm/yyyy)</div>
                     <div class="card-body">
                         <label class="d-flex align-items-center gap-2 mb-3">
                             <input type="checkbox" id="pdsNoChildren" autocomplete="off">
@@ -544,7 +603,8 @@
                                     <div class="col-12 col-md-3"><label class="pds-form-label">Period from</label><input type="text" class="form-control pds-form-control" name="{{ $key }}_period_from" value="{{ old("{$key}_period_from", $pds->{"{$key}_period_from"}) }}" maxlength="20" placeholder="e.g. 06/2010"></div>
                                     <div class="col-12 col-md-3"><label class="pds-form-label">Period to</label><input type="text" class="form-control pds-form-control" name="{{ $key }}_period_to" value="{{ old("{$key}_period_to", $pds->{"{$key}_period_to"}) }}" maxlength="20" placeholder="e.g. 03/2014"></div>
                                     <div class="col-12 col-md-6"><label class="pds-form-label">Highest level / Units (if not graduated)</label><input type="text" class="form-control pds-form-control" name="{{ $key }}_highest_level_units" value="{{ old("{$key}_highest_level_units", $pds->{"{$key}_highest_level_units"}) }}" maxlength="255"></div>
-                                    <div class="col-12 col-md-6"><label class="pds-form-label">Scholarship / Academic honors</label><input type="text" class="form-control pds-form-control" name="{{ $key }}_scholarship_honors" value="{{ old("{$key}_scholarship_honors", $pds->{"{$key}_scholarship_honors"}) }}" maxlength="255" placeholder="e.g. WITH HONOR"></div>
+                                    <div class="col-12 col-md-3"><label class="pds-form-label">Year Graduated</label><input type="text" class="form-control pds-form-control" name="{{ $key }}_year_graduated" value="{{ old("{$key}_year_graduated", $pds->{"{$key}_year_graduated"}) }}" maxlength="10" placeholder="e.g. 2014"></div>
+                                    <div class="col-12 col-md-3"><label class="pds-form-label">Scholarship / Academic honors</label><input type="text" class="form-control pds-form-control" name="{{ $key }}_scholarship_honors" value="{{ old("{$key}_scholarship_honors", $pds->{"{$key}_scholarship_honors"}) }}" maxlength="255" placeholder="e.g. WITH HONOR"></div>
                                 </div>
                             </div>
                         </div>
@@ -580,11 +640,295 @@
                 </div>
             </div>
 
-            {{-- Step 4: Declaration --}}
+            {{-- Step 4: Voluntary Work, L&D, Other Information (Page 3) --}}
             <div class="pds-step-section" id="pds-step-4" data-step="4">
+                <div class="pds-section-card">
+                    <div class="card-header"><i class="bi bi-hand-heart"></i> VI. Voluntary Work / Involvement in Civic / NGO / Voluntary Organizations</div>
+                    <div class="card-body">
+                        <div class="pds-instruction-banner">
+                            <i class="bi bi-info-circle"></i>
+                            <p class="pds-instruction-text">List voluntary work or involvement in civic, non-government, people, or voluntary organization(s). (Continue on separate sheet if necessary.)</p>
+                        </div>
+                        <div id="pdsVoluntaryCards"></div>
+                        <button type="button" class="btn btn-deped btn-sm pds-btn-add-item" id="pdsAddVoluntaryBtn"><i class="bi bi-plus-lg"></i> Add voluntary work</button>
+                    </div>
+                </div>
+                <div class="pds-section-card">
+                    <div class="card-header"><i class="bi bi-mortarboard"></i> VII. Learning and Development (L&amp;D) Interventions / Training Programs Attended</div>
+                    <div class="card-body">
+                        <div class="pds-instruction-banner">
+                            <i class="bi bi-info-circle"></i>
+                            <p class="pds-instruction-text">List training programs attended. For each entry, provide <strong>Title of L&amp;D</strong>, <strong>CONDUCTED/ SPONSORED BY (Write in full)</strong>, type (Managerial/Supervisory/Technical), number of hours, and inclusive dates. (Continue on separate sheet if necessary.)</p>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="pdsImportLdBtn" title="Import 10 most recent trainings from the Training Tracker">
+                                <i class="bi bi-download me-1"></i> {{ $isOwn ? 'Import from my trainings' : 'Import from trainings' }}
+                            </button>
+                            <span class="text-muted small">Imported entries are editable.</span>
+                        </div>
+                        <div id="pdsLdCards"></div>
+                        <button type="button" class="btn btn-deped btn-sm pds-btn-add-item" id="pdsAddLdBtn"><i class="bi bi-plus-lg"></i> Add L&amp;D / training</button>
+                    </div>
+                </div>
+                <div class="pds-section-card">
+                    <div class="card-header"><i class="bi bi-stars"></i> VIII. Other Information</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="pds-form-label">31. Special skills and hobbies</label>
+                                <textarea class="form-control pds-form-control" name="special_skills_hobbies" rows="3" placeholder="e.g. Public speaking, sports, arts" maxlength="1000">{{ old('special_skills_hobbies', $pds->special_skills_hobbies) }}</textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="pds-form-label">32. Non-academic distinctions / recognition</label>
+                                <textarea class="form-control pds-form-control" name="non_academic_distinctions" rows="3" placeholder="e.g. Awards, citations" maxlength="1000">{{ old('non_academic_distinctions', $pds->non_academic_distinctions) }}</textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="pds-form-label">33. Membership in association/organization</label>
+                                <textarea class="form-control pds-form-control" name="membership_in_associations" rows="3" placeholder="e.g. Professional associations, civic groups" maxlength="1000">{{ old('membership_in_associations', $pds->membership_in_associations) }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Step 5: Page 4 — Questions 34–40 (official), References, Govt ID --}}
+            <div class="pds-step-section" id="pds-step-5" data-step="5">
+                @php
+                    $page4Yn = function($name) use ($pds) { $v = old($name, $pds->{$name}); return $v === 'Y' || $v === 'N' ? $v : ''; };
+                @endphp
+                <div class="pds-section-card">
+                    <div class="card-header"><i class="bi bi-diagram-3"></i> 34–40. Page 4 Questions</div>
+                    <div class="card-body">
+                        <p class="pds-form-label mb-2">34. Are you related by consanguinity or affinity to the appointing or recommending authority, or to the chief of bureau or office or to the person who has immediate supervision over you in the Office, Bureau or Department where you will be appointed,</p>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="pds-form-label">a. within the third degree?</label>
+                                <div class="pds-radio-group">
+                                    <label class="pds-radio-option"><input type="radio" name="related_third_degree_yn" value="Y" {{ $page4Yn('related_third_degree_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="related_third_degree_yn" value="N" {{ $page4Yn('related_third_degree_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="pds-form-label">b. within the fourth degree (for Local Government Unit - Career Employees)?</label>
+                                <div class="pds-radio-group">
+                                    <label class="pds-radio-option"><input type="radio" name="related_fourth_degree_yn" value="Y" {{ $page4Yn('related_fourth_degree_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="related_fourth_degree_yn" value="N" {{ $page4Yn('related_fourth_degree_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="pds-conditional {{ ($page4Yn('related_third_degree_yn') !== 'Y' && $page4Yn('related_fourth_degree_yn') !== 'Y') ? 'hidden' : '' }}" data-show-any="related_third_degree_yn,related_fourth_degree_yn" data-show-value="Y">
+                                    <label class="pds-form-label">If YES, give details:</label>
+                                    <textarea class="form-control pds-form-control" name="related_authority_details" rows="2">{{ old('related_authority_details', $pds->related_authority_details) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-12"><div class="pds-subsection-title mt-3">35.</div></div>
+                            <div class="col-12">
+                                <label class="pds-form-label">a. Have you ever been found guilty of any administrative offense?</label>
+                                <div class="pds-radio-group mb-2">
+                                    <label class="pds-radio-option"><input type="radio" name="admin_offense_yn" value="Y" {{ $page4Yn('admin_offense_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="admin_offense_yn" value="N" {{ $page4Yn('admin_offense_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                                <div class="pds-conditional {{ $page4Yn('admin_offense_yn') !== 'Y' ? 'hidden' : '' }}" data-show-when="admin_offense_yn" data-show-value="Y">
+                                    <label class="pds-form-label">If YES, give details:</label>
+                                    <textarea class="form-control pds-form-control" name="admin_offense_details" rows="2">{{ old('admin_offense_details', $pds->admin_offense_details) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="pds-form-label">b. Have you been criminally charged before any court?</label>
+                                <div class="pds-radio-group mb-2">
+                                    <label class="pds-radio-option"><input type="radio" name="criminally_charged_yn" value="Y" {{ $page4Yn('criminally_charged_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="criminally_charged_yn" value="N" {{ $page4Yn('criminally_charged_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                                <div class="pds-conditional {{ $page4Yn('criminally_charged_yn') !== 'Y' ? 'hidden' : '' }}" data-show-when="criminally_charged_yn" data-show-value="Y">
+                                    <label class="pds-form-label">If YES, give details:</label>
+                                    <div class="row g-2">
+                                        <div class="col-12 col-md-4">
+                                            <label class="pds-form-label">Date Filed:</label>
+                                            <input type="text" class="form-control pds-form-control" name="criminally_charged_date_filed" value="{{ old('criminally_charged_date_filed', $pds->criminally_charged_date_filed) }}" placeholder="e.g. MM/DD/YYYY" maxlength="100">
+                                        </div>
+                                        <div class="col-12 col-md-4">
+                                            <label class="pds-form-label">Status of Case/s:</label>
+                                            <input type="text" class="form-control pds-form-control" name="criminally_charged_status" value="{{ old('criminally_charged_status', $pds->criminally_charged_status) }}" maxlength="255">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="pds-form-label">Details (optional)</label>
+                                            <textarea class="form-control pds-form-control" name="criminally_charged_details" rows="2">{{ old('criminally_charged_details', $pds->criminally_charged_details) }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12"><div class="pds-subsection-title mt-3">36.</div></div>
+                            <div class="col-12">
+                                <label class="pds-form-label">Have you ever been convicted of any crime or violation of any law, decree, ordinance or regulation by any court or tribunal?</label>
+                                <div class="pds-radio-group mb-2">
+                                    <label class="pds-radio-option"><input type="radio" name="convicted_yn" value="Y" {{ $page4Yn('convicted_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="convicted_yn" value="N" {{ $page4Yn('convicted_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                                <div class="pds-conditional {{ $page4Yn('convicted_yn') !== 'Y' ? 'hidden' : '' }}" data-show-when="convicted_yn" data-show-value="Y">
+                                    <label class="pds-form-label">If YES, give details:</label>
+                                    <textarea class="form-control pds-form-control" name="convicted_details" rows="2">{{ old('convicted_details', $pds->convicted_details) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-12"><div class="pds-subsection-title mt-3">37.</div></div>
+                            <div class="col-12">
+                                <label class="pds-form-label">Have you ever been separated from the service in any of the following modes: resignation, retirement, dropped from the rolls, dismissal, termination, end of term, finished contract or phased out (abolition) in the public or private sector?</label>
+                                <div class="pds-radio-group mb-2">
+                                    <label class="pds-radio-option"><input type="radio" name="separated_from_service_yn" value="Y" {{ $page4Yn('separated_from_service_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="separated_from_service_yn" value="N" {{ $page4Yn('separated_from_service_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                                <div class="pds-conditional {{ $page4Yn('separated_from_service_yn') !== 'Y' ? 'hidden' : '' }}" data-show-when="separated_from_service_yn" data-show-value="Y">
+                                    <label class="pds-form-label">If YES, give details:</label>
+                                    <textarea class="form-control pds-form-control" name="separated_from_service_details" rows="2">{{ old('separated_from_service_details', $pds->separated_from_service_details) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-12"><div class="pds-subsection-title mt-3">38.</div></div>
+                            <div class="col-12">
+                                <label class="pds-form-label">a. Have you ever been a candidate in a national or local election held within the last year (except Barangay election)?</label>
+                                <div class="pds-radio-group mb-2">
+                                    <label class="pds-radio-option"><input type="radio" name="candidate_election_yn" value="Y" {{ $page4Yn('candidate_election_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="candidate_election_yn" value="N" {{ $page4Yn('candidate_election_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                                <div class="pds-conditional {{ $page4Yn('candidate_election_yn') !== 'Y' ? 'hidden' : '' }}" data-show-when="candidate_election_yn" data-show-value="Y">
+                                    <label class="pds-form-label">If YES, give details:</label>
+                                    <textarea class="form-control pds-form-control" name="candidate_election_details" rows="2">{{ old('candidate_election_details', $pds->candidate_election_details) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="pds-form-label">b. Have you resigned from the government service during the three (3)-month period before the last election to promote/actively campaign for a national or local candidate?</label>
+                                <div class="pds-radio-group mb-2">
+                                    <label class="pds-radio-option"><input type="radio" name="resigned_campaign_yn" value="Y" {{ $page4Yn('resigned_campaign_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="resigned_campaign_yn" value="N" {{ $page4Yn('resigned_campaign_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                                <div class="pds-conditional {{ $page4Yn('resigned_campaign_yn') !== 'Y' ? 'hidden' : '' }}" data-show-when="resigned_campaign_yn" data-show-value="Y">
+                                    <label class="pds-form-label">If YES, give details:</label>
+                                    <textarea class="form-control pds-form-control" name="resigned_campaign_details" rows="2">{{ old('resigned_campaign_details', $pds->resigned_campaign_details) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-12"><div class="pds-subsection-title mt-3">39.</div></div>
+                            <div class="col-12">
+                                <label class="pds-form-label">Have you acquired the status of an immigrant or permanent resident of another country?</label>
+                                <div class="pds-radio-group mb-2">
+                                    <label class="pds-radio-option"><input type="radio" name="immigrant_resident_yn" value="Y" {{ $page4Yn('immigrant_resident_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="immigrant_resident_yn" value="N" {{ $page4Yn('immigrant_resident_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                                <div class="pds-conditional {{ $page4Yn('immigrant_resident_yn') !== 'Y' ? 'hidden' : '' }}" data-show-when="immigrant_resident_yn" data-show-value="Y">
+                                    <label class="pds-form-label">If YES, give details (country):</label>
+                                    <input type="text" class="form-control pds-form-control" name="immigrant_resident_details" value="{{ old('immigrant_resident_details', $pds->immigrant_resident_details) }}" placeholder="Country" maxlength="255">
+                                </div>
+                            </div>
+                            <div class="col-12"><div class="pds-subsection-title mt-3">40.</div></div>
+                            <div class="col-12">
+                                <p class="pds-form-label mb-2">Pursuant to: (a) Indigenous People's Act (RA 8371); (b) Magna Carta for Disabled Persons (RA 7277, as amended); and (c) Expanded Solo Parents Welfare Act (RA 11861), please answer the following items:</p>
+                            </div>
+                            <div class="col-12">
+                                <label class="pds-form-label">a. Are you a member of any indigenous group?</label>
+                                <div class="pds-radio-group mb-2">
+                                    <label class="pds-radio-option"><input type="radio" name="indigenous_group_yn" value="Y" {{ $page4Yn('indigenous_group_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="indigenous_group_yn" value="N" {{ $page4Yn('indigenous_group_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                                <div class="pds-conditional {{ $page4Yn('indigenous_group_yn') !== 'Y' ? 'hidden' : '' }}" data-show-when="indigenous_group_yn" data-show-value="Y">
+                                    <label class="pds-form-label">If YES, please specify:</label>
+                                    <input type="text" class="form-control pds-form-control" name="indigenous_group_specify" value="{{ old('indigenous_group_specify', $pds->indigenous_group_specify) }}" maxlength="255">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="pds-form-label">b. Are you a person with disability?</label>
+                                <div class="pds-radio-group mb-2">
+                                    <label class="pds-radio-option"><input type="radio" name="pwd_yn" value="Y" {{ $page4Yn('pwd_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="pwd_yn" value="N" {{ $page4Yn('pwd_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                                <div class="pds-conditional {{ $page4Yn('pwd_yn') !== 'Y' ? 'hidden' : '' }}" data-show-when="pwd_yn" data-show-value="Y">
+                                    <label class="pds-form-label">If YES, please specify ID No.:</label>
+                                    <input type="text" class="form-control pds-form-control" name="pwd_id_no" value="{{ old('pwd_id_no', $pds->pwd_id_no) }}" placeholder="ID No." maxlength="100">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="pds-form-label">c. Are you a solo parent?</label>
+                                <div class="pds-radio-group mb-2">
+                                    <label class="pds-radio-option"><input type="radio" name="solo_parent_yn" value="Y" {{ $page4Yn('solo_parent_yn') === 'Y' ? 'checked' : '' }}> <span>YES</span></label>
+                                    <label class="pds-radio-option"><input type="radio" name="solo_parent_yn" value="N" {{ $page4Yn('solo_parent_yn') === 'N' ? 'checked' : '' }}> <span>NO</span></label>
+                                </div>
+                                <div class="pds-conditional {{ $page4Yn('solo_parent_yn') !== 'Y' ? 'hidden' : '' }}" data-show-when="solo_parent_yn" data-show-value="Y">
+                                    <label class="pds-form-label">If YES, please specify ID No.:</label>
+                                    <input type="text" class="form-control pds-form-control" name="solo_parent_id_no" value="{{ old('solo_parent_id_no', $pds->solo_parent_id_no) }}" placeholder="ID No." maxlength="100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pds-section-card">
+                    <div class="card-header"><i class="bi bi-person-lines-fill"></i> 41. References</div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">(Person not related by consanguinity or affinity to applicant/appointee)</p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="pds-form-label">Name</th>
+                                        <th class="pds-form-label">Office / Residential Address</th>
+                                        <th class="pds-form-label">Contact No. and/or Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach([1 => 'ref1', 2 => 'ref2', 3 => 'ref3'] as $num => $pre)
+                                    <tr>
+                                        <td><input type="text" class="form-control pds-form-control border-0" name="{{ $pre }}_name" value="{{ old($pre.'_name', $pds->{$pre.'_name'}) }}" placeholder="Full name" maxlength="255"></td>
+                                        <td><input type="text" class="form-control pds-form-control border-0" name="{{ $pre }}_address" value="{{ old($pre.'_address', $pds->{$pre.'_address'}) }}" placeholder="Address"></td>
+                                        <td><input type="text" class="form-control pds-form-control border-0" name="{{ $pre }}_contact" value="{{ old($pre.'_contact', $pds->{$pre.'_contact'}) }}" placeholder="Contact / Email" maxlength="255"></td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="pds-section-card">
+                    <div class="card-header"><i class="bi bi-card-checklist"></i> 42. Declaration &amp; Government ID</div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">Declaration will be confirmed in the next step. Provide government-issued ID information below.</p>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-4">
+                                <label class="pds-form-label">Government Issued ID (e.g. Passport, GSIS, SSS, PRC, Driver's License)</label>
+                                <input type="text" class="form-control pds-form-control" name="govt_id_type" value="{{ old('govt_id_type', $pds->govt_id_type) }}" placeholder="Type of ID" maxlength="100">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="pds-form-label">ID/License/Passport No.</label>
+                                <input type="text" class="form-control pds-form-control" name="govt_id_number" value="{{ old('govt_id_number', $pds->govt_id_number) }}" maxlength="100">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="pds-form-label">Date/Place of Issuance</label>
+                                <input type="text" class="form-control pds-form-control" name="govt_id_place_date_issue" value="{{ old('govt_id_place_date_issue', $pds->govt_id_place_date_issue) }}" placeholder="e.g. Manila, 01 Jan 2020" maxlength="255">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="pds-form-label">Date Accomplished</label>
+                                <input type="date" class="form-control pds-form-control" name="date_accomplished" value="{{ old('date_accomplished', $pds->date_accomplished ? \Carbon\Carbon::parse($pds->date_accomplished)->format('Y-m-d') : '') }}">
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-12 col-md-5">
+                                <label class="pds-form-label">Upload photo</label>
+                                <input type="file" class="form-control pds-form-control" name="photo" id="pdsPhotoInput" accept="image/jpeg,image/png,image/jpg">
+                                <p class="small text-muted mt-1 mb-0">JPEG or PNG, max 5 MB. Will be cropped to 4.5×3.5 cm.</p>
+                            </div>
+                            <div class="col-12 col-md-4 d-flex align-items-start">
+                                <div class="pds-photo-preview-wrap border rounded bg-light overflow-hidden flex-shrink-0" id="pdsPhotoPreviewWrap" style="width:135px;height:105px;">
+                                    <img src="{{ $pds->photo_url ?? '' }}" alt="PDS photo" id="pdsPhotoPreview" class="pds-photo-preview-img" style="width:100%;height:100%;object-fit:cover;{{ $pds->photo_url ? '' : 'display:none;' }}">
+                                    <span class="d-block w-100 h-100 d-flex align-items-center justify-content-center small text-muted" id="pdsPhotoPlaceholder" style="{{ $pds->photo_url ? 'display:none;' : '' }}">No photo</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 p-2 rounded bg-light small text-muted">
+                            <strong>Photo requirement:</strong> Passport-sized, unfiltered digital picture, taken within the last 6 months. Required size: 4.5 cm × 3.5 cm. The system will crop your image to this size without stretching.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Step 6: Declaration (42. DECLARATION - official text) --}}
+            <div class="pds-step-section" id="pds-step-6" data-step="6">
                 <div class="pds-declaration-box mb-4">
-                    <strong><i class="bi bi-exclamation-triangle me-1"></i> Declaration</strong>
-                    Any misrepresentation in this Personal Data Sheet or the Work Experience Sheet may result in administrative and/or criminal case(s) against the person concerned. By submitting this form, you confirm that the information provided is true and correct to the best of your knowledge.
+                    <strong><i class="bi bi-exclamation-triangle me-1"></i> 42. Declaration</strong>
+                    I declare under oath that I have personally accomplished this Personal Data Sheet which is a true, correct, and complete statement pursuant to the provisions of pertinent laws, rules, and regulations of the Republic of the Philippines. I authorize the agency head/authorized representative to verify/validate the contents stated herein. I agree that any misrepresentation made in this document and its attachments shall cause the filing of administrative/criminal case/s against me.
                 </div>
                 <p class="text-muted mb-4">Review your entries in previous steps if needed, then click <strong>Save and submit</strong> to finalize your Personal Data Sheet.</p>
             </div>
@@ -630,7 +974,7 @@
 @push('scripts')
 <script>
 (function() {
-    var STEP_COUNT = 4;
+    var STEP_COUNT = 6;
     var draftUrl = @json($draftUrl);
     var currentStep = 1;
     var steps = document.querySelectorAll('.pds-step-section');
@@ -690,14 +1034,21 @@
     var saveDraftBtn = document.getElementById('pdsSaveDraftBtn');
     function syncChildrenInput() {
         var container = document.getElementById('pdsChildrenCards');
-        var hidden = document.getElementById('pdsChildrenNamesInput');
-        if (!container || !hidden) return;
+        var namesHidden = document.getElementById('pdsChildrenNamesInput');
+        var dataHidden = document.getElementById('pdsChildrenDataInput');
+        if (!container || !namesHidden) return;
         var parts = [];
-        container.querySelectorAll('input[data-child-name]').forEach(function(inp) {
-            var v = inp.value.trim();
-            if (v) parts.push(v);
+        var dataRows = [];
+        container.querySelectorAll('[data-child-card]').forEach(function(card) {
+            var nameInp = card.querySelector('input[data-child-name]');
+            var dobInp = card.querySelector('input[data-child-dob]');
+            var nameVal = nameInp ? nameInp.value.trim() : '';
+            var dobVal = dobInp ? dobInp.value : '';
+            if (nameVal) parts.push(nameVal);
+            dataRows.push({ name: nameVal, dob: dobVal || null });
         });
-        hidden.value = parts.join("\n");
+        namesHidden.value = parts.join("\n");
+        if (dataHidden) dataHidden.value = JSON.stringify(dataRows);
     }
     function collectFormData() {
         syncChildrenInput();
@@ -722,6 +1073,29 @@
     }
     if (saveDraftBtn) saveDraftBtn.addEventListener('click', saveDraft);
     setInterval(saveDraft, 30000);
+
+    // Photo preview (4.5×3.5 cm proportion)
+    var photoInput = document.getElementById('pdsPhotoInput');
+    var photoPreview = document.getElementById('pdsPhotoPreview');
+    var photoPlaceholder = document.getElementById('pdsPhotoPlaceholder');
+    if (photoInput && photoPreview && photoPlaceholder) {
+        photoInput.addEventListener('change', function() {
+            var file = this.files && this.files[0];
+            if (file && file.type.indexOf('image/') === 0) {
+                var r = new FileReader();
+                r.onload = function() {
+                    photoPreview.src = r.result;
+                    photoPreview.style.display = 'block';
+                    photoPlaceholder.style.display = 'none';
+                };
+                r.readAsDataURL(file);
+            } else {
+                photoPreview.src = '';
+                photoPreview.style.display = 'none';
+                photoPlaceholder.style.display = 'flex';
+            }
+        });
+    }
 
     // Progressive disclosure
     var citizenshipRadios = form.querySelectorAll('input[name="citizenship"]');
@@ -757,6 +1131,30 @@
     if (noChildrenCheck) noChildrenCheck.addEventListener('change', toggleChildrenList);
     toggleChildrenList();
 
+    // Page 4: show/hide "If YES" details by radio
+    function refreshPage4Conditionals() {
+        form.querySelectorAll('[data-show-when][data-show-value]').forEach(function(wrap) {
+            if (wrap.hasAttribute('data-show-any')) return;
+            var name = wrap.getAttribute('data-show-when');
+            var want = wrap.getAttribute('data-show-value');
+            var radio = form.querySelector('input[name="' + name + '"][value="' + want + '"]');
+            wrap.classList.toggle('hidden', !radio || !radio.checked);
+        });
+        form.querySelectorAll('[data-show-any][data-show-value]').forEach(function(wrap) {
+            var names = wrap.getAttribute('data-show-any').split(',').map(function(s) { return s.trim(); });
+            var want = wrap.getAttribute('data-show-value');
+            var anyChecked = names.some(function(name) {
+                var radio = form.querySelector('input[name="' + name + '"][value="' + want + '"]');
+                return radio && radio.checked;
+            });
+            wrap.classList.toggle('hidden', !anyChecked);
+        });
+    }
+    form.querySelectorAll('input[type="radio"]').forEach(function(r) {
+        if (form.querySelector('[data-show-when="' + r.name + '"]') || form.querySelector('[data-show-any]')) r.addEventListener('change', refreshPage4Conditionals);
+    });
+    refreshPage4Conditionals();
+
     // Same as residential
     var sameCheck = document.getElementById('pdsSameAsResidential');
     var resNames = ['residential_house_no','residential_street','residential_subdivision','residential_barangay','residential_city','residential_province','residential_zip'];
@@ -788,9 +1186,11 @@
     var addChildBtn = document.getElementById('pdsAddChildBtn');
     var childIndex = {{ count($childrenInitial) }};
     var childrenInitial = @json($childrenInitial);
-    function addChildCard(value) {
+    function addChildCard(item) {
         if (!childrenCards) return;
-        value = value || '';
+        if (typeof item !== 'object' || item === null) item = { name: (item || '').toString(), dob: '' };
+        var nameVal = (item.name || '').toString().replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        var dobVal = (item.dob || '').toString();
         var id = 'child-' + (childIndex++);
         var div = document.createElement('div');
         div.className = 'pds-card-repeat';
@@ -799,11 +1199,16 @@
             '<span class="card-title-text">Child ' + (childrenCards.querySelectorAll("[data-child-card]").length + 1) + '</span>' +
             '<button type="button" class="pds-btn-remove pds-remove-child" aria-label="Remove"><i class="bi bi-trash"></i></button>' +
             '</div><div class="pds-card-repeat-body">' +
-            '<label class="pds-form-label">Full name</label>' +
-            '<input type="text" class="form-control pds-form-control" data-child-name maxlength="255" value="' + (value.replace(/"/g, '&quot;')) + '" placeholder="Full name of child">' +
-            '</div>';
+            '<div class="row g-2">' +
+            '<div class="col-12 col-md-6"><label class="pds-form-label">Full name</label>' +
+            '<input type="text" class="form-control pds-form-control" data-child-name maxlength="255" value="' + nameVal + '" placeholder="Full name of child"></div>' +
+            '<div class="col-12 col-md-6"><label class="pds-form-label">DATE OF BIRTH (dd/mm/yyyy)</label>' +
+            '<input type="date" class="form-control pds-form-control" data-child-dob value="' + dobVal + '"></div>' +
+            '</div></div>';
         childrenCards.appendChild(div);
         div.querySelector('input[data-child-name]').addEventListener('input', syncChildrenInput);
+        div.querySelector('input[data-child-dob]').addEventListener('input', syncChildrenInput);
+        div.querySelector('input[data-child-dob]').addEventListener('change', syncChildrenInput);
         div.querySelector('.pds-remove-child').addEventListener('click', function() {
             div.remove();
             syncChildrenInput();
@@ -922,6 +1327,170 @@
         });
     });
 
+    // Voluntary work cards
+    var voluntaryRows = @json($voluntaryRows);
+    var voluntaryContainer = document.getElementById('pdsVoluntaryCards');
+    var voluntaryTpl = function(i, v) {
+        v = v || {};
+        return '<div class="pds-card-repeat" data-voluntary-card>' +
+            '<div class="pds-card-repeat-header">' +
+            '<span class="card-title-text">' + (v.conducted_sponsored_by || 'Voluntary ' + (i + 1)) + '</span>' +
+            '<button type="button" class="pds-btn-remove pds-remove-voluntary" aria-label="Remove"><i class="bi bi-trash"></i></button>' +
+            '</div><div class="pds-card-repeat-body">' +
+            '<div class="row g-2">' +
+            '<div class="col-12"><label class="pds-form-label">29. Name &amp; Address of Organization (Write in full)</label><input type="text" class="form-control pds-form-control" name="voluntary[' + i + '][conducted_sponsored_by]" value="' + (v.conducted_sponsored_by || '').replace(/"/g, '&quot;') + '" maxlength="500"></div>' +
+            '<div class="col-12 col-md-3"><label class="pds-form-label">Inclusive dates from</label><input type="date" class="form-control pds-form-control" name="voluntary[' + i + '][inclusive_dates_from]" value="' + (v.inclusive_dates_from || '') + '"></div>' +
+            '<div class="col-12 col-md-3"><label class="pds-form-label">Inclusive dates to</label><input type="date" class="form-control pds-form-control" name="voluntary[' + i + '][inclusive_dates_to]" value="' + (v.inclusive_dates_to || '') + '"></div>' +
+            '<div class="col-12 col-md-3"><label class="pds-form-label">Number of hours</label><input type="number" class="form-control pds-form-control" name="voluntary[' + i + '][number_of_hours]" value="' + (v.number_of_hours || '') + '" min="0" placeholder="0"></div>' +
+            '<div class="col-12 col-md-3"><label class="pds-form-label">Position / Nature of work</label><input type="text" class="form-control pds-form-control" name="voluntary[' + i + '][position_nature_of_work]" value="' + (v.position_nature_of_work || '').replace(/"/g, '&quot;') + '" maxlength="255"></div>' +
+            '</div></div></div>';
+    };
+    var voluntaryIndex = voluntaryRows.length;
+    voluntaryRows.forEach(function(v, i) { voluntaryContainer.insertAdjacentHTML('beforeend', voluntaryTpl(i, v)); });
+    function reindexVoluntary() {
+        var cards = voluntaryContainer.querySelectorAll('[data-voluntary-card]');
+        cards.forEach(function(card, i) {
+            card.querySelectorAll('input').forEach(function(inp) {
+                var n = inp.getAttribute('name');
+                if (n && n.indexOf('voluntary[') === 0) inp.setAttribute('name', n.replace(/voluntary\[\d+\]/, 'voluntary[' + i + ']'));
+            });
+            var title = card.querySelector('.card-title-text');
+            if (title) title.textContent = 'Voluntary ' + (i + 1);
+        });
+    }
+    document.getElementById('pdsAddVoluntaryBtn').addEventListener('click', function() {
+        voluntaryContainer.insertAdjacentHTML('beforeend', voluntaryTpl(voluntaryIndex++, {}));
+        var newCard = voluntaryContainer.lastElementChild;
+        newCard.querySelector('.pds-card-repeat-header').addEventListener('click', function() { newCard.classList.toggle('collapsed'); });
+        newCard.querySelector('.pds-remove-voluntary').addEventListener('click', function() {
+            if (voluntaryContainer.querySelectorAll('[data-voluntary-card]').length <= 1) return;
+            newCard.remove();
+            reindexVoluntary();
+        });
+        reindexVoluntary();
+    });
+    voluntaryContainer.querySelectorAll('[data-voluntary-card]').forEach(function(card) {
+        card.querySelector('.pds-card-repeat-header').addEventListener('click', function() { card.classList.toggle('collapsed'); });
+        card.querySelector('.pds-remove-voluntary').addEventListener('click', function() {
+            if (voluntaryContainer.querySelectorAll('[data-voluntary-card]').length <= 1) return;
+            card.remove();
+            reindexVoluntary();
+        });
+    });
+
+    // Learning development cards
+    var ldRows = @json($ldRows);
+    var ldContainer = document.getElementById('pdsLdCards');
+    var importLdUrl = @json($importLdUrl);
+    var ldTypes = ['Managerial', 'Supervisory', 'Technical', 'Other'];
+    var ldTpl = function(i, l) {
+        l = l || {};
+        var typeOpts = ldTypes.map(function(t) {
+            var sel = (l.type_of_ld || '') === t ? ' selected' : '';
+            return '<option value="' + t + '"' + sel + '>' + t + '</option>';
+        }).join('');
+        if (l.type_of_ld && ldTypes.indexOf(l.type_of_ld) === -1) {
+            typeOpts += '<option value="' + (l.type_of_ld || '').replace(/"/g, '&quot;') + '" selected>' + (l.type_of_ld || '').replace(/</g, '&lt;') + '</option>';
+        }
+        return '<div class="pds-card-repeat" data-ld-card>' +
+            '<div class="pds-card-repeat-header">' +
+            '<span class="card-title-text">' + (l.title_of_ld || 'L&amp;D ' + (i + 1)) + '</span>' +
+            '<button type="button" class="pds-btn-remove pds-remove-ld" aria-label="Remove"><i class="bi bi-trash"></i></button>' +
+            '</div><div class="pds-card-repeat-body">' +
+            '<div class="row g-2">' +
+            '<div class="col-12"><label class="pds-form-label">30. Title of L&amp;D Interventions/Training Programs (Write in full)</label><input type="text" class="form-control pds-form-control" name="learning_development[' + i + '][title_of_ld]" value="' + (l.title_of_ld || '').replace(/"/g, '&quot;') + '" maxlength="500"></div>' +
+            '<div class="col-12"><label class="pds-form-label">CONDUCTED/ SPONSORED BY (Write in full)</label><input type="text" class="form-control pds-form-control" name="learning_development[' + i + '][organization_name_address]" value="' + (l.organization_name_address || '').replace(/"/g, '&quot;') + '" maxlength="500" placeholder="Name and address of organization that conducted or sponsored the training"></div>' +
+            '<div class="col-12 col-md-4"><label class="pds-form-label">31. Type of L&amp;D</label><select class="form-select pds-form-control pds-ld-type-select" name="learning_development[' + i + '][type_of_ld]"><option value="">— Select —</option>' + typeOpts + '</select></div>' +
+            '<div class="col-12 col-md-4 pds-ld-other-wrap pds-conditional' + ((l.type_of_ld || '') === 'Other' ? '' : ' hidden') + '"><label class="pds-form-label">If Other, please specify</label><input type="text" class="form-control pds-form-control" name="learning_development[' + i + '][type_of_ld_specify]" value="' + (l.type_of_ld_specify || '').replace(/"/g, '&quot;') + '" maxlength="100" placeholder="Specify type"></div>' +
+            '<div class="col-12 col-md-4"><label class="pds-form-label">Number of hours</label><input type="number" class="form-control pds-form-control" name="learning_development[' + i + '][number_of_hours]" value="' + (l.number_of_hours || '') + '" min="0" placeholder="0"></div>' +
+            '<div class="col-12 col-md-4"><label class="pds-form-label">Inclusive dates from</label><input type="date" class="form-control pds-form-control" name="learning_development[' + i + '][inclusive_dates_from]" value="' + (l.inclusive_dates_from || '') + '"></div>' +
+            '<div class="col-12 col-md-4"><label class="pds-form-label">Inclusive dates to</label><input type="date" class="form-control pds-form-control" name="learning_development[' + i + '][inclusive_dates_to]" value="' + (l.inclusive_dates_to || '') + '"></div>' +
+            '</div></div></div>';
+    };
+    var ldIndex = ldRows.length;
+    ldRows.forEach(function(l, i) { ldContainer.insertAdjacentHTML('beforeend', ldTpl(i, l)); });
+    ldContainer.querySelectorAll('[data-ld-card]').forEach(function(card) { attachLdCardListeners(card); });
+    function reindexLd() {
+        var cards = ldContainer.querySelectorAll('[data-ld-card]');
+        cards.forEach(function(card, i) {
+            card.querySelectorAll('input, select').forEach(function(el) {
+                var n = el.getAttribute('name');
+                if (n && n.indexOf('learning_development[') === 0) el.setAttribute('name', n.replace(/learning_development\[\d+\]/, 'learning_development[' + i + ']'));
+            });
+            var titleEl = card.querySelector('.card-title-text');
+            var titleInp = card.querySelector('input[name*="[title_of_ld]"]');
+            if (titleEl) titleEl.textContent = (titleInp && titleInp.value.trim()) ? titleInp.value.trim() : 'L&D ' + (i + 1);
+        });
+    }
+    function attachLdCardListeners(card) {
+        card.querySelector('.pds-card-repeat-header').addEventListener('click', function() { card.classList.toggle('collapsed'); });
+        card.querySelector('.pds-remove-ld').addEventListener('click', function() {
+            if (ldContainer.querySelectorAll('[data-ld-card]').length <= 1) return;
+            card.remove();
+            reindexLd();
+        });
+        var titleInp = card.querySelector('input[name*="[title_of_ld]"]');
+        if (titleInp) titleInp.addEventListener('input', function() {
+            var t = card.querySelector('.card-title-text');
+            if (t) t.textContent = this.value.trim() || 'L&D ' + (Array.prototype.indexOf.call(ldContainer.querySelectorAll('[data-ld-card]'), card) + 1);
+        });
+    }
+    function attachLdCardListeners(card) {
+        card.querySelector('.pds-card-repeat-header').addEventListener('click', function() { card.classList.toggle('collapsed'); });
+        card.querySelector('.pds-remove-ld').addEventListener('click', function() {
+            if (ldContainer.querySelectorAll('[data-ld-card]').length <= 1) return;
+            card.remove();
+            reindexLd();
+        });
+        var titleInp = card.querySelector('input[name*="[title_of_ld]"]');
+        if (titleInp) titleInp.addEventListener('input', function() {
+            var t = card.querySelector('.card-title-text');
+            if (t) t.textContent = this.value.trim() || 'L&D ' + (Array.prototype.indexOf.call(ldContainer.querySelectorAll('[data-ld-card]'), card) + 1);
+        });
+    }
+    document.getElementById('pdsAddLdBtn').addEventListener('click', function() {
+        ldContainer.insertAdjacentHTML('beforeend', ldTpl(ldIndex++, {}));
+        var newCard = ldContainer.lastElementChild;
+        attachLdCardListeners(newCard);
+        reindexLd();
+    });
+    document.getElementById('pdsImportLdBtn').addEventListener('click', function() {
+        var btn = this;
+        var origHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Loading...';
+        fetch(importLdUrl, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                var items = res.data || [];
+                if (items.length === 0) {
+                    alert('No trainings found in your record.');
+                    return;
+                }
+                items.forEach(function(l) {
+                    ldContainer.insertAdjacentHTML('beforeend', ldTpl(ldIndex++, l));
+                    var newCard = ldContainer.lastElementChild;
+                    attachLdCardListeners(newCard);
+                });
+                reindexLd();
+                if (items.length > 0) {
+                    var firstNew = ldContainer.querySelectorAll('[data-ld-card]')[ldContainer.querySelectorAll('[data-ld-card]').length - items.length];
+                    if (firstNew) firstNew.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            })
+            .catch(function() { alert('Failed to load trainings. Please try again.'); })
+            .finally(function() {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            });
+    });
+    ldContainer.addEventListener('change', function(e) {
+        if (e.target.classList.contains('pds-ld-type-select')) {
+            var wrap = e.target.closest('.pds-card-repeat-body').querySelector('.pds-ld-other-wrap');
+            if (wrap) wrap.classList.toggle('hidden', e.target.value !== 'Other');
+        }
+    });
+
     // Input masks (simple)
     form.querySelectorAll('.pds-mask-tin').forEach(function(inp) {
         inp.addEventListener('input', function() {
@@ -951,8 +1520,32 @@
         setTimeout(function() { firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
     }
 
-    // Sync children before submit
-    form.addEventListener('submit', function() { syncChildrenInput(); });
+    // Sync children before submit; confirm before final submit
+    form.addEventListener('submit', function(e) {
+        syncChildrenInput();
+        if (form.dataset.allowSubmit === '1') return;
+        e.preventDefault();
+        Swal.fire({
+            title: 'Save and submit?',
+            text: 'This will finalize your Personal Data Sheet. You can still edit it later if needed.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1E35FF',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, save and submit'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                form.dataset.allowSubmit = '1';
+                form.submit();
+            }
+        });
+    });
+
+    @if(session('success'))
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({ icon: 'success', title: 'Saved', text: @json(session('success')), confirmButtonColor: '#1E35FF' });
+    }
+    @endif
 })();
 </script>
 @endpush

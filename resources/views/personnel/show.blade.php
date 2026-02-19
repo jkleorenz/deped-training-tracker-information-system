@@ -44,6 +44,7 @@
                 <div class="d-flex flex-wrap gap-1">
                     <a href="{{ route('reports.pdf', ['user_id' => $user->id]) }}" class="btn btn-deped btn-sm" target="_blank"><i class="bi bi-file-pdf me-1"></i> Print STA</a>
                     <a href="{{ route('reports.pds-pdf', ['user_id' => $user->id]) }}" class="btn btn-deped btn-sm" target="_blank"><i class="bi bi-person-vcard me-1"></i> Print PDS</a>
+                    <a href="{{ route('reports.pds-excel', ['user_id' => $user->id]) }}" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel me-1"></i> PDS Excel</a>
                     <a href="{{ route('personnel.pds.edit', $user) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil-square me-1"></i> Edit PDS</a>
                     <a href="{{ route('reports.excel', ['user_id' => $user->id]) }}" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-excel me-1"></i> Export Excel</a>
                     @if(auth()->user()->isAdmin() || auth()->user()->isSubAdmin())
@@ -119,7 +120,7 @@
                         <thead>
                             <tr>
                                 <th>Title</th>
-                                <th>Type</th>
+                                <th>Type of L&amp;D</th>
                                 <th>Provider</th>
                                 <th>Venue</th>
                                 <th>Date</th>
@@ -130,7 +131,7 @@
                             @foreach($user->trainings as $t)
                             <tr>
                                 <td>{{ $t->title }}</td>
-                                <td>{{ $t->type ? ucfirst($t->type) : '—' }}</td>
+                                <td>{{ $t->type_of_ld ? $t->type_of_ld . ($t->type_of_ld_specify ? ' (' . $t->type_of_ld_specify . ')' : '') : '—' }}</td>
                                 <td>{{ $t->provider ?? '—' }}</td>
                                 <td>{{ $t->venue ?? '—' }}</td>
                                 <td>

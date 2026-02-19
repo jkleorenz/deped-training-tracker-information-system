@@ -27,7 +27,7 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
         if ($this->forUser) {
             return [
                 'Title',
-                'Type',
+                'Type of L&D',
                 'Provider',
                 'Venue',
                 'Start Date',
@@ -41,7 +41,7 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
             'Personnel',
             'Employee ID',
             'Title',
-            'Type',
+            'Type of L&D',
             'Provider',
             'Venue',
             'Start Date',
@@ -91,7 +91,7 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
             $user ? $user->name : '-',
             $user?->employee_id ?? '-',
             $training->title,
-            $training->type,
+            $training->type_of_ld ? $training->type_of_ld . ($training->type_of_ld_specify ? ' (' . $training->type_of_ld_specify . ')' : '') : '-',
             $training->provider,
             $training->venue,
             $training->start_date?->format('Y-m-d'),
@@ -108,7 +108,7 @@ class TrainingsExport implements FromCollection, WithHeadings, WithMapping
             $pivot = $row instanceof Training ? ($row->pivot ?? null) : ($row->pivot ?? null);
             return [
                 $t->title,
-                $t->type,
+                $t->type_of_ld ? $t->type_of_ld . ($t->type_of_ld_specify ? ' (' . $t->type_of_ld_specify . ')' : '') : '',
                 $t->provider,
                 $t->venue,
                 $t->start_date?->format('Y-m-d'),

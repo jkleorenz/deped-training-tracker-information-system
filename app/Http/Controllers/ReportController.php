@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Exports\TrainingsExport;
 use App\Models\User;
+use App\Services\PdsExcelService;
+use App\Services\PdsPhotoService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -105,18 +107,57 @@ class ReportController extends Controller
             $reportUser = $authUser;
         }
 
-        $reportUser->load(['personalDataSheet.civilServiceEligibilities', 'personalDataSheet.workExperiences']);
+        $reportUser->load(['personalDataSheet.civilServiceEligibilities', 'personalDataSheet.workExperiences', 'personalDataSheet.voluntaryWorks', 'personalDataSheet.learningDevelopments']);
         $pds = $reportUser->personalDataSheet;
+
+        $photoService = app(PdsPhotoService::class);
+        $photoPathAbsolute = $pds && $pds->photo_path ? $photoService->absolutePath($pds->photo_path) : null;
 
         $pdf = Pdf::loadView('reports.pds-pdf', [
             'user' => $reportUser,
             'pds' => $pds,
+            'photoPathAbsolute' => $photoPathAbsolute,
         ]);
 
         $pdf->setPaper('A4', 'portrait');
+        $pdf->setOption('margin-top', '0.5in');
+        $pdf->setOption('margin-right', '0.5in');
+        $pdf->setOption('margin-bottom', '0.5in');
+        $pdf->setOption('margin-left', '0.5in');
         $pdf->setOption('footer-right', 'CS FORM 212 (Revised 2025), Page [page] of [topage]');
         $pdf->setOption('footer-font-size', 7);
 
         return $pdf->stream('personal_data_sheet_' . $reportUser->id . '.pdf', ['Attachment' => false]);
+    }
+
+    /**
+     * Personal Data Sheet (CS Form No. 212) as Excel – official template filled with personnel data.
+     */
+    public function pdsExcel(Request $request): BinaryFileResponse|Response
+    {
+        $authUser = Auth::user();
+        $userId = $request->input('user_id');
+
+        if ($authUser->isAdminOrSubAdmin() && $userId) {
+            $targetUser = User::findOrFail($userId);
+            $this->authorize('view', $targetUser);
+            $reportUser = $targetUser;
+        } else {
+            $reportUser = $authUser;
+        }
+
+        $reportUser->load(['personalDataSheet.civilServiceEligibilities', 'personalDataSheet.workExperiences', 'personalDataSheet.voluntaryWorks', 'personalDataSheet.learningDevelopments']);
+        $pds = $reportUser->personalDataSheet;
+
+        if (! $pds) {
+            abort(404, 'Personal Data Sheet not found. Please complete the PDS first.');
+        }
+
+        $pds->refresh();
+
+        $path = app(PdsExcelService::class)->generate($pds);
+        $filename = 'personal_data_sheet_' . preg_replace('/[^a-z0-9._-]/', '_', strtolower($reportUser->name)) . '.xlsx';
+
+        return response()->download($path, $filename)->deleteFileAfterSend(true);
     }
 }

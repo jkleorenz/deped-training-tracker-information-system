@@ -11,7 +11,8 @@ class Training extends Model
 
     protected $fillable = [
         'title',
-        'type',
+        'type_of_ld',
+        'type_of_ld_specify',
         'provider',
         'venue',
         'start_date',

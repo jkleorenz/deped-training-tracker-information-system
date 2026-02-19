@@ -52,7 +52,7 @@
 </div>
 
 <div class="row g-3">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <a href="{{ route('personnel.index') }}" class="text-decoration-none text-dark">
             <div class="card h-100 card-hover">
                 <div class="card-body d-flex align-items-start gap-3">
@@ -66,7 +66,7 @@
             </div>
         </a>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
         <a href="{{ route('trainings.manage') }}" class="text-decoration-none text-dark">
             <div class="card h-100 card-hover">
                 <div class="card-body d-flex align-items-start gap-3">
@@ -75,20 +75,6 @@
                         <h6 class="text-muted mb-1">Trainings / Seminars</h6>
                         <p class="mb-0 stat-number" id="stat-trainings">{{ $trainings_count ?? 0 }}</p>
                         <span class="small text-muted">Manage →</span>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="{{ route('personnel.index') }}" class="text-decoration-none text-dark">
-            <div class="card h-100 card-hover">
-                <div class="card-body d-flex align-items-start gap-3">
-                    <div class="stat-card-icon flex-shrink-0"><i class="bi bi-clipboard-check"></i></div>
-                    <div class="min-w-0">
-                        <h6 class="text-muted mb-1">Attendance Records</h6>
-                        <p class="mb-0 stat-number" id="stat-attendance">—</p>
-                        <span class="small text-muted">View all →</span>
                     </div>
                 </div>
             </div>
