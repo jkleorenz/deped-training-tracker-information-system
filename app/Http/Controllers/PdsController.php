@@ -452,6 +452,48 @@ class PdsController extends Controller
         return response()->json(['data' => $data]);
     }
 
+    /**
+     * AJAX: Upload / update profile picture for the given user (or current user).
+     * Returns JSON with the new photo URL so the UI can refresh immediately.
+     */
+    public function uploadPhoto(Request $request, ?User $user = null): JsonResponse
+    {
+        $targetUser = $user ?? $request->user();
+        $this->authorize('update', $targetUser);
+
+        $request->validate([
+            'photo' => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:5120'],
+        ]);
+
+        $pds = $targetUser->personalDataSheet;
+        if (! $pds) {
+            $pds = new PersonalDataSheet(['user_id' => $targetUser->id]);
+            $pds->surname = $pds->surname ?? $targetUser->name;
+            $pds->first_name = $pds->first_name ?? '';
+            $pds->user_id = $targetUser->id;
+            $pds->save();
+        }
+
+        $photoService = app(PdsPhotoService::class);
+        $photoService->delete($pds->photo_path);
+        $stored = $photoService->processAndStore($request->file('photo'), $pds->id);
+
+        if ($stored === null) {
+            return response()->json(['success' => false, 'message' => 'Failed to store photo.'], 500);
+        }
+
+        $pds->photo_path = $stored;
+        $pds->save();
+
+        $photoUrl = $pds->photo_url;
+
+        return response()->json([
+            'success' => true,
+            'photo_url' => $photoUrl,
+            'message' => 'Profile picture updated successfully.',
+        ]);
+    }
+
     private function syncCivilServiceEligibilities(PersonalDataSheet $pds, array $rows): void
     {
         $pds->civilServiceEligibilities()->delete();

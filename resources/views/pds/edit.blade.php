@@ -1280,11 +1280,15 @@
                                 <label class="pds-form-label">Upload photo</label>
                                 <input type="file" class="form-control pds-form-control" name="photo" id="pdsPhotoInput" accept="image/jpeg,image/png,image/jpg">
                                 <p class="small text-muted mt-1 mb-0">JPEG or PNG, max 5 MB. Will be cropped to 4.5×3.5 cm.</p>
+                                <button type="button" class="btn btn-deped btn-sm mt-2" id="pdsPhotoUploadBtn" style="display:none;">
+                                    <i class="bi bi-upload me-1"></i> <span class="btn-text">Upload Now</span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
                             </div>
                             <div class="col-12 col-md-4 d-flex align-items-start">
-                                <div class="pds-photo-preview-wrap border rounded bg-light overflow-hidden flex-shrink-0" id="pdsPhotoPreviewWrap" style="width:135px;height:105px;">
+                                <div class="pds-photo-preview-wrap overflow-hidden flex-shrink-0" id="pdsPhotoPreviewWrap" style="width:130px;height:160px;border:2px solid var(--deped-primary);border-radius:6px;background:#f8fafc;">
                                     <img src="{{ $pds->photo_url ?? '' }}" alt="PDS photo" id="pdsPhotoPreview" class="pds-photo-preview-img" style="width:100%;height:100%;object-fit:cover;{{ $pds->photo_url ? '' : 'display:none;' }}">
-                                    <span class="d-block w-100 h-100 d-flex align-items-center justify-content-center small text-muted" id="pdsPhotoPlaceholder" style="{{ $pds->photo_url ? 'display:none;' : '' }}">No photo</span>
+                                    <span class="d-block w-100 h-100 d-flex flex-column align-items-center justify-content-center small text-muted" id="pdsPhotoPlaceholder" style="{{ $pds->photo_url ? 'display:none;' : '' }}"><i class="bi bi-person-fill" style="font-size:2.5rem;opacity:0.3;"></i><span class="mt-1">No photo</span></span>
                                 </div>
                             </div>
                         </div>
@@ -1838,14 +1842,25 @@
     if (saveDraftBtn) saveDraftBtn.addEventListener('click', saveDraft);
     setInterval(saveDraft, 30000);
 
-    // Photo preview (4.5×3.5 cm proportion)
+    // Photo preview + AJAX instant upload
     var photoInput = document.getElementById('pdsPhotoInput');
     var photoPreview = document.getElementById('pdsPhotoPreview');
     var photoPlaceholder = document.getElementById('pdsPhotoPlaceholder');
+    var photoUploadBtn = document.getElementById('pdsPhotoUploadBtn');
+    var photoUploadUrl = @json($isOwn ? route('pds.upload-photo') : route('personnel.pds.upload-photo', $user));
+
     if (photoInput && photoPreview && photoPlaceholder) {
         photoInput.addEventListener('change', function() {
             var file = this.files && this.files[0];
             if (file && file.type.indexOf('image/') === 0) {
+                // Validate file size client-side (5 MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'File too large', text: 'Maximum file size is 5 MB.', confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--deped-primary').trim() });
+                    } else { alert('Maximum file size is 5 MB.'); }
+                    this.value = '';
+                    return;
+                }
                 var r = new FileReader();
                 r.onload = function() {
                     photoPreview.src = r.result;
@@ -1853,10 +1868,90 @@
                     photoPlaceholder.style.display = 'none';
                 };
                 r.readAsDataURL(file);
+                if (photoUploadBtn) photoUploadBtn.style.display = 'inline-flex';
             } else {
                 photoPreview.src = '';
                 photoPreview.style.display = 'none';
                 photoPlaceholder.style.display = 'flex';
+                if (photoUploadBtn) photoUploadBtn.style.display = 'none';
+            }
+        });
+    }
+
+    // AJAX upload handler
+    if (photoUploadBtn) {
+        photoUploadBtn.addEventListener('click', async function() {
+            var file = photoInput && photoInput.files && photoInput.files[0];
+            if (!file) return;
+            var btnText = photoUploadBtn.querySelector('.btn-text');
+            var spinner = photoUploadBtn.querySelector('.spinner-border');
+            photoUploadBtn.disabled = true;
+            if (btnText) btnText.classList.add('d-none');
+            if (spinner) spinner.classList.remove('d-none');
+
+            var fd = new FormData();
+            fd.append('photo', file);
+            fd.append('_token', document.querySelector('input[name="_token"]').value);
+
+            try {
+                var resp = await fetch(photoUploadUrl, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value },
+                    body: fd
+                });
+                var json = await resp.json().catch(function() { return {}; });
+                if (resp.ok && json.success && json.photo_url) {
+                    // Update PDS photo preview
+                    photoPreview.src = json.photo_url;
+                    photoPreview.style.display = 'block';
+                    if (photoPlaceholder) photoPlaceholder.style.display = 'none';
+
+                    // Update navbar avatar globally
+                    var globalAvatar = document.getElementById('globalUserAvatar');
+                    if (globalAvatar) {
+                        var existingImg = globalAvatar.querySelector('img.avatar-img');
+                        if (existingImg) {
+                            existingImg.src = json.photo_url;
+                        } else {
+                            globalAvatar.innerHTML = '<img src="' + json.photo_url + '" alt="Profile" class="avatar-img">';
+                        }
+                    }
+
+                    // Update personnel info profile photo if present
+                    var personnelPhoto = document.getElementById('personnelProfilePhoto');
+                    var personnelPlaceholder = document.getElementById('personnelProfilePhotoPlaceholder');
+                    if (personnelPhoto) {
+                        personnelPhoto.src = json.photo_url;
+                        personnelPhoto.style.display = 'block';
+                        if (personnelPlaceholder) personnelPlaceholder.style.display = 'none';
+                    } else {
+                        var wrap = document.getElementById('personnelProfilePhotoWrap');
+                        if (wrap) {
+                            wrap.innerHTML = '<img src="' + json.photo_url + '" alt="Profile" id="personnelProfilePhoto" style="width:100%;height:100%;object-fit:cover;display:block;">';
+                        }
+                    }
+
+                    photoUploadBtn.style.display = 'none';
+                    photoInput.value = '';
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'success', title: 'Profile picture updated', text: json.message || 'Photo saved successfully.', confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--deped-primary').trim(), timer: 3000, timerProgressBar: true });
+                    }
+                } else {
+                    var errMsg = json.message || 'Upload failed. Please try again.';
+                    if (json.errors && json.errors.photo) errMsg = json.errors.photo.join(' ');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: 'Upload failed', text: errMsg, confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--deped-primary').trim() });
+                    } else { alert(errMsg); }
+                }
+            } catch (e) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'Upload failed.', confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--deped-primary').trim() });
+                } else { alert('Upload failed: ' + (e.message || 'Please try again.')); }
+            } finally {
+                photoUploadBtn.disabled = false;
+                if (btnText) btnText.classList.remove('d-none');
+                if (spinner) spinner.classList.add('d-none');
             }
         });
     }

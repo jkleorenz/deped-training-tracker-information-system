@@ -319,7 +319,19 @@ class MyTrainingController extends Controller
             ], 422);
         }
 
-        $rows = Excel::toCollection(new TrainingsImport(), $file)->first();
+        $import = new TrainingsImport();
+
+        try {
+            Excel::import($import, $file);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'message' => 'The file headers could not be detected.',
+                'errors' => ['file' => [$e->getMessage()]],
+            ], 422);
+        }
+
+        $rows = $import->getRows();
+
         if (! $rows || $rows->isEmpty()) {
             return response()->json([
                 'message' => 'The file has no data rows.',
@@ -357,17 +369,16 @@ class MyTrainingController extends Controller
         };
 
         foreach ($rows as $index => $row) {
-            $rowNumber = $index + 2; // 1-based + header row
-            $row = $row->toArray();
+            $rowArray = $row instanceof \Illuminate\Support\Collection ? $row->toArray() : (array) $row;
+            $rowNumber = $rowArray['__row_number'] ?? ($index + 2);
 
-            // Normalize keys (Maatwebsite uses slug: "Start Date" -> "start_date")
-            $get = function ($key, $alt = null) use ($row) {
-                $v = $row[$key] ?? $row[$alt ?? $key] ?? null;
+            // Normalize keys (import already maps headers, but keep fallbacks)
+            $get = function ($key, $alt = null) use ($rowArray) {
+                $v = $rowArray[$key] ?? ($alt ? ($rowArray[$alt] ?? null) : null);
                 return $v !== null && $v !== '' ? trim((string) $v) : null;
             };
-            $getRaw = function ($key, $alt = null) use ($row) {
-                $v = $row[$key] ?? $row[$alt ?? $key] ?? null;
-                return $v;
+            $getRaw = function ($key, $alt = null) use ($rowArray) {
+                return $rowArray[$key] ?? ($alt ? ($rowArray[$alt] ?? null) : null);
             };
             $title = $get('title', 'Title');
             $startDateRaw = $getRaw('start_date', 'Start Date');
@@ -415,7 +426,7 @@ class MyTrainingController extends Controller
             $remarks = $remarks !== null ? substr($remarks, 0, 255) : null;
 
             try {
-                DB::transaction(function () use ($user, $row, $get, $hours, $attendedDateParsed, $remarks, $startDateParsed, $endDateParsed, &$imported, &$duplicates) {
+                DB::transaction(function () use ($user, $get, $hours, $attendedDateParsed, $remarks, $startDateParsed, $endDateParsed, &$imported, &$duplicates) {
                     $title = $get('title', 'Title');
                     $titleNormalized = $title !== null && $title !== '' ? trim(preg_replace('/\s+/', ' ', $title)) : '';
 

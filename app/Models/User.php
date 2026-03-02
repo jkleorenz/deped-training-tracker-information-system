@@ -99,4 +99,17 @@ class User extends Authenticatable
     {
         return $this->hasOne(PersonalDataSheet::class);
     }
+
+    /**
+     * Profile picture URL sourced from the PDS photo.
+     * Returns null if no photo has been uploaded.
+     */
+    public function getProfilePictureUrlAttribute(): ?string
+    {
+        $pds = $this->relationLoaded('personalDataSheet')
+            ? $this->personalDataSheet
+            : $this->personalDataSheet()->first();
+
+        return $pds?->photo_url;
+    }
 }

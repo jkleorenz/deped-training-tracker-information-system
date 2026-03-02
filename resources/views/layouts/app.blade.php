@@ -153,6 +153,14 @@
             justify-content: center;
             font-weight: 700;
             font-size: 0.95rem;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .top-header .user-avatar img.avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
         .top-header .user-info { text-align: left; }
         .top-header .user-info .user-name { font-weight: 600; font-size: 0.9rem; color: #1e293b; }
@@ -296,7 +304,13 @@
                 <div class="header-actions ms-auto">
                     <div class="dropdown">
                         <button class="user-dropdown dropdown-toggle border-0 bg-transparent" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="user-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
+                            <div class="user-avatar" id="globalUserAvatar">
+                                @if(auth()->user()->profile_picture_url)
+                                    <img src="{{ auth()->user()->profile_picture_url }}" alt="{{ auth()->user()->name }}" class="avatar-img">
+                                @else
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                                @endif
+                            </div>
                             <div class="user-info">
                                 <div class="user-name">{{ auth()->user()->name }}</div>
                                 <div class="user-email">{{ auth()->user()->email }}</div>

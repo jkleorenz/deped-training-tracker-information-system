@@ -22,16 +22,12 @@
         <p>Training / Seminar Attendance Report</p>
     </div>
     <div class="meta">
-        <p><strong>Personnel:</strong> {{ $user->name }}</p>
-        @if($user->employee_id)<p><strong>Employee ID:</strong> {{ $user->employee_id }}</p>@endif
-        @if($user->designation)<p><strong>Designation:</strong> {{ $user->designation }}</p>@endif
-        @if($user->school)<p><strong>School/Office:</strong> {{ $user->school }}</p>@endif
-        <p><strong>Report generated:</strong> {{ now()->format('F j, Y g:i A') }}</p>
+        <p><strong>Name:</strong> {{ $header['full_name'] ?? $user->name }}</p>
+        <p><strong>School/Office:</strong> {{ $header['school_office'] ?? $user->school }}</p>
     </div>
     <table>
         <thead>
             <tr>
-                <th>#</th>
                 <th>Title</th>
                 <th>Type of L&amp;D</th>
                 <th>Provider</th>
@@ -39,13 +35,12 @@
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Hours</th>
-                <th>Attended</th>
+                <th>Attended Date</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($trainings as $index => $t)
+            @forelse($trainings as $t)
             <tr>
-                <td>{{ $index + 1 }}</td>
                 <td>{{ $t->title }}</td>
                 <td>{{ $t->type_of_ld ? ucfirst($t->type_of_ld) . ($t->type_of_ld_specify ? ' (' . $t->type_of_ld_specify . ')' : '') : '—' }}</td>
                 <td>{{ $t->provider ?? '—' }}</td>
@@ -57,7 +52,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="9" style="text-align:center">No trainings recorded.</td>
+                <td colspan="8" style="text-align:center">No records found.</td>
             </tr>
             @endforelse
         </tbody>

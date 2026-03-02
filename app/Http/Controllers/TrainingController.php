@@ -314,7 +314,19 @@ class TrainingController extends Controller
         $users = User::whereIn('id', $userIds)->get();
         $file = $request->file('file');
 
-        $rows = Excel::toCollection(new TrainingsImport(), $file)->first();
+        $import = new TrainingsImport();
+
+        try {
+            Excel::import($import, $file);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'message' => 'The file headers could not be detected.',
+                'errors' => ['file' => [$e->getMessage()]],
+            ], 422);
+        }
+
+        $rows = $import->getRows();
+
         if (! $rows || $rows->isEmpty()) {
             return response()->json([
                 'message' => 'The file has no data rows.',
@@ -352,17 +364,16 @@ class TrainingController extends Controller
         };
 
         foreach ($rows as $index => $row) {
-            $rowNumber = $index + 2; // 1-based + header row
-            $row = $row->toArray();
+            $rowArray = $row instanceof \Illuminate\Support\Collection ? $row->toArray() : (array) $row;
+            $rowNumber = $rowArray['__row_number'] ?? ($index + 2);
 
-            // Normalize keys (Maatwebsite uses slug: "Start Date" -> "start_date")
-            $get = function ($key, $alt = null) use ($row) {
-                $v = $row[$key] ?? $row[$alt ?? $key] ?? null;
+            // Normalize keys (import already maps headers, but keep fallbacks)
+            $get = function ($key, $alt = null) use ($rowArray) {
+                $v = $rowArray[$key] ?? ($alt ? ($rowArray[$alt] ?? null) : null);
                 return $v !== null && $v !== '' ? trim((string) $v) : null;
             };
-            $getRaw = function ($key, $alt = null) use ($row) {
-                $v = $row[$key] ?? $row[$alt ?? $key] ?? null;
-                return $v;
+            $getRaw = function ($key, $alt = null) use ($rowArray) {
+                return $rowArray[$key] ?? ($alt ? ($rowArray[$alt] ?? null) : null);
             };
             $title = $get('title', 'Title');
             $startDateRaw = $getRaw('start_date', 'Start Date');

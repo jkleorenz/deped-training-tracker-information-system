@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\PdsExcelService;
 use App\Services\PdsPhotoService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
@@ -20,7 +21,7 @@ class ReportController extends Controller
      * Admin/Sub-admin: can export for specific user(s) via user_id or user_id[], or all.
      * Personnel: own records only.
      */
-    public function excel(Request $request): BinaryFileResponse
+    public function excel(Request $request): BinaryFileResponse|RedirectResponse
     {
         $user = Auth::user();
         $userIds = $request->input('user_id');
@@ -34,8 +35,12 @@ class ReportController extends Controller
             if ($targetUsers->count() === 1) {
                 $exportUser = $targetUsers->first();
                 $trainings = $exportUser->trainings()->orderBy('trainings.start_date', 'desc')->get();
+                $headerData = $this->buildPersonnelHeaderData($exportUser);
+                if ($response = $this->guardMissingHeaderData($headerData)) {
+                    return $response;
+                }
                 return Excel::download(
-                    new TrainingsExport($trainings, $exportUser),
+                    new TrainingsExport($trainings, $exportUser, [], $headerData['full_name'], $headerData['school_office']),
                     'deped_trainings_' . preg_replace('/[^a-z0-9]/', '_', strtolower($exportUser->name)) . '.xlsx'
                 );
             }
@@ -55,9 +60,13 @@ class ReportController extends Controller
 
         $exportUser = $user;
         $trainings = $user->trainings()->orderBy('trainings.start_date', 'desc')->get();
+        $headerData = $this->buildPersonnelHeaderData($exportUser);
+        if ($response = $this->guardMissingHeaderData($headerData)) {
+            return $response;
+        }
 
         return Excel::download(
-            new TrainingsExport($trainings, $exportUser),
+            new TrainingsExport($trainings, $exportUser, [], $headerData['full_name'], $headerData['school_office']),
             'deped_trainings_' . preg_replace('/[^a-z0-9]/', '_', strtolower($exportUser->name)) . '.xlsx'
         );
     }
@@ -65,7 +74,7 @@ class ReportController extends Controller
     /**
      * Printable PDF report for a user's trainings.
      */
-    public function pdf(Request $request): Response
+    public function pdf(Request $request): Response|RedirectResponse
     {
         $user = Auth::user();
         $userId = $request->input('user_id');
@@ -79,11 +88,16 @@ class ReportController extends Controller
         }
 
         $trainings = $reportUser->trainings()->orderBy('trainings.start_date', 'desc')->get();
+        $headerData = $this->buildPersonnelHeaderData($reportUser);
+        if ($response = $this->guardMissingHeaderData($headerData)) {
+            return $response;
+        }
 
         $pdf = Pdf::loadView('reports.trainings-pdf', [
             'user' => $reportUser,
             'trainings' => $trainings,
             'appName' => config('app.name'),
+            'header' => $headerData,
         ]);
 
         $pdf->setPaper('A4', 'portrait');
@@ -196,5 +210,45 @@ class ReportController extends Controller
         $filename = 'personal_data_sheet_' . preg_replace('/[^a-z0-9._-]/', '_', strtolower($reportUser->name)) . '.pdf';
 
         return response()->download($path, $filename, ['Content-Type' => 'application/pdf'])->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Build the header data (Name & School/Office) using PDS details when available.
+     */
+    private function buildPersonnelHeaderData(User $user): array
+    {
+        $user->loadMissing('personalDataSheet');
+        $pds = $user->personalDataSheet;
+
+        $fullName = trim((string) ($user->name ?? ''));
+        if ($pds && (trim((string) ($pds->surname ?? '')) !== '' || trim((string) ($pds->first_name ?? '')) !== '')) {
+            $first = trim((string) ($pds->first_name ?? ''));
+            $middle = trim((string) ($pds->middle_name ?? ''));
+            $middleInitial = $middle !== '' ? mb_strtoupper(mb_substr($middle, 0, 1)) . '.' : '';
+            $surname = trim((string) ($pds->surname ?? ''));
+            $ext = trim((string) ($pds->name_extension ?? ''));
+            $parts = array_filter([$first, $middleInitial, $surname], fn ($value) => $value !== '');
+            $fullName = trim(implode(' ', $parts) . ($ext !== '' ? ' ' . $ext : ''));
+        }
+
+        return [
+            'full_name' => $fullName,
+            'school_office' => trim((string) ($user->school ?? '')),
+        ];
+    }
+
+    /**
+     * Ensure the export is blocked when required header data is missing.
+     */
+    private function guardMissingHeaderData(array $headerData): ?RedirectResponse
+    {
+        $nameMissing = trim((string) ($headerData['full_name'] ?? '')) === '';
+        $schoolMissing = trim((string) ($headerData['school_office'] ?? '')) === '';
+
+        if ($nameMissing || $schoolMissing) {
+            return redirect()->back()->with('error', 'Cannot export Seminars & Trainings Attended because the personnel record is missing Name and/or School/Office information. Please update the personnel profile and try again.');
+        }
+
+        return null;
     }
 }

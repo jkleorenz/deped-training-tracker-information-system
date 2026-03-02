@@ -8,7 +8,7 @@ return [
     | The app looks for the first .xlsx in storage/app/pds-templates/.
     | You can override with a full path here, e.g. storage_path('app/pds-templates/CS-Form-212.xlsx').
     */
-    'template_path' => null,
+    'template_path' => env('PDS_EXCEL_TEMPLATE_PATH', null),
 
     /*
     |--------------------------------------------------------------------------

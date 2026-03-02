@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/personnel/{user}/pds', [PdsController::class, 'update'])->name('personnel.pds.update')->middleware('role:admin,sub-admin');
     Route::post('/personnel/{user}/pds/draft', [PdsController::class, 'draft'])->name('personnel.pds.draft')->middleware('role:admin,sub-admin');
     Route::get('/personnel/{user}/pds/print', [PdsController::class, 'print'])->name('personnel.pds.print')->middleware('role:admin,sub-admin');
+    Route::post('/personnel/{user}/pds/upload-photo', [PdsController::class, 'uploadPhoto'])->name('personnel.pds.upload-photo')->middleware('role:admin,sub-admin');
     Route::get('/api/personnel/{user}/pds/importable-trainings', [PdsController::class, 'importableTrainings'])->name('api.personnel.pds.importable-trainings')->middleware('role:admin,sub-admin');
     Route::get('/api/personnel', [PersonnelController::class, 'list'])->name('api.personnel.list');
     Route::get('/api/personnel/{user}/trainings', [PersonnelController::class, 'trainings'])->name('api.personnel.trainings');
@@ -79,6 +80,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/pds', [PdsController::class, 'update'])->name('pds.update');
     Route::post('/pds/draft', [PdsController::class, 'draft'])->name('pds.draft');
     Route::get('/pds/print', [PdsController::class, 'print'])->name('pds.print');
+
+    // PDS profile picture upload (own, AJAX)
+    Route::post('/pds/upload-photo', [PdsController::class, 'uploadPhoto'])->name('pds.upload-photo');
 
     // PDS importable trainings API (own)
     Route::get('/api/pds/importable-trainings', [PdsController::class, 'importableTrainings'])->name('api.pds.importable-trainings');
