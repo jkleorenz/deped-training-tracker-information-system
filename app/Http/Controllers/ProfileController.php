@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,7 @@ class ProfileController extends Controller
     /**
      * Update the authenticated user's profile (personal info).
      */
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request): RedirectResponse|JsonResponse
     {
         $user = Auth::user();
 
@@ -34,10 +35,19 @@ class ProfileController extends Controller
             'employee_id' => ['nullable', 'string', 'max:50'],
             'designation' => ['nullable', 'string', 'max:100'],
             'school' => ['nullable', 'string', 'max:255'],
-            'theme' => ['nullable', 'string', 'in:default,red,green'],
+            'theme' => ['nullable', 'string', 'in:default,red,green,black,deep-purple,yellow'],
         ]);
 
         $user->update($validated);
+
+        // Check if this is an AJAX request (for theme updates)
+        if ($request->expectsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Theme updated successfully.',
+                'theme' => $user->theme
+            ]);
+        }
 
         return redirect()->route('profile.edit')->with('success', 'Profile updated successfully.');
     }

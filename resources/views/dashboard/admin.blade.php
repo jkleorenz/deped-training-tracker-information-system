@@ -6,7 +6,7 @@
 <style>
 .card-hover { transition: box-shadow 0.2s ease; }
 .card-hover:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-.stat-card-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--deped-accent); color: var(--deped-primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
+.stat-card-icon { width: 48px; height: 48px; border-radius: 12px; color: var(--deped-primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
 .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--deped-primary); }
 .quick-actions-title { font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem; }
 .quick-action-tile {
@@ -26,7 +26,6 @@
     height: 52px;
     margin: 0 auto 0.75rem;
     border-radius: 14px;
-    background: var(--deped-accent);
     color: var(--deped-primary);
     display: flex;
     align-items: center;
@@ -99,7 +98,7 @@
         <div class="col-6 col-md-4 col-lg-3">
             <button type="button" class="quick-action-tile w-100" data-bs-toggle="modal" data-bs-target="#exportExcelModal" style="cursor: pointer;">
                 <div class="tile-icon"><i class="bi bi-file-earmark-excel"></i></div>
-                <span class="tile-label">Export to Excel</span>
+                <span class="tile-label">Export Trainings.xlsx</span>
             </button>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
@@ -111,14 +110,14 @@
     </div>
 </div>
 
-{{-- Export to Excel: select one or multiple users --}}
+{{-- Export Trainings.xlsx: select one or multiple users --}}
 <div class="modal fade" id="exportExcelModal" tabindex="-1" aria-labelledby="exportExcelModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 rounded-3 shadow-sm">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title d-flex align-items-center gap-2" id="exportExcelModalLabel">
-                    <span class="rounded-2 p-2" style="background: var(--deped-accent); color: var(--deped-primary);"><i class="bi bi-file-earmark-excel"></i></span>
-                    Export to Excel
+                    <span class="rounded-2 p-2" style="color: var(--deped-primary);"><i class="bi bi-file-earmark-excel"></i></span>
+                    Export Trainings.xlsx
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -142,7 +141,7 @@
             </div>
             <div class="modal-footer border-0 pt-0 flex-nowrap">
                 <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancel</button>
-                <a href="#" class="btn btn-deped rounded-3 px-4" id="exportExcelGo"><i class="bi bi-download me-1"></i> Export to Excel</a>
+                <a href="#" class="btn btn-deped rounded-3 px-4" id="exportExcelGo"><i class="bi bi-download me-1"></i> Export Trainings.xlsx</a>
             </div>
         </div>
     </div>

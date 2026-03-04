@@ -13,9 +13,9 @@
 .personnel-table { border-collapse: collapse; }
 .personnel-table thead th {
     position: sticky; top: 0; z-index: 2;
-    background: #f1f5f9; color: #334155;
+    background: #f8f9fa; color: #334155;
     padding: 0.6rem 0.75rem; font-size: 0.8125rem; font-weight: 600;
-    white-space: nowrap; border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap; border-bottom: 2px solid #dee2e6;
 }
 .personnel-table tbody td {
     padding: 0.5rem 0.75rem; vertical-align: middle;
@@ -29,6 +29,10 @@
 .personnel-table tbody tr.selected { background: #e0e7ff !important; outline: 1px solid var(--deped-primary); outline-offset: -1px; }
 .personnel-table .col-title { font-weight: 600; color: #1e293b; }
 .personnel-table .text-truncate-cell { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.personnel-table .personnel-name-full { white-space: normal; overflow: visible; text-overflow: clip; display: inline; }
+.personnel-table .col-actions { width: 6.5rem; text-align: left; }
+.personnel-table .btn-action-icon { padding: 0.35rem; width: 2rem; height: 2rem; }
+.personnel-table .btn-action-icon.btn-delete:hover { color: #dc2626; border-color: #dc2626; }
 .personnel-table-pagination-wrap { flex-wrap: wrap; }
 .personnel-table-pagination { display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: flex-end; align-items: center; }
 .personnel-table-pagination .page-link { padding: 0.35rem 0.6rem; font-size: 0.875rem; color: var(--deped-primary) !important; }
@@ -45,6 +49,7 @@
 .personnel-card-mobile .card-mobile-title { font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; }
 .personnel-card-mobile .card-mobile-row { display: flex; gap: 0.5rem; font-size: 0.8125rem; margin-bottom: 0.25rem; }
 .personnel-card-mobile .card-mobile-label { color: #64748b; min-width: 5rem; }
+.personnel-card-mobile .personnel-card-actions { margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #e2e8f0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
 /* Status badges */
 .badge-status { font-size: 0.75rem; padding: 0.25em 0.6em; border-radius: 999px; }
@@ -59,12 +64,67 @@
 </style>
 @endpush
 
+@php
+    $canEditPersonnel = auth()->user()->isAdmin() || auth()->user()->isSubAdmin();
+    $canDeletePersonnel = auth()->user()->isAdmin();
+@endphp
+
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="page-title mb-1">Personnel</h4>
         <p class="text-muted small mb-0">Click a row to view profile, metadata, and seminars & trainings attended.</p>
     </div>
+
+{{-- Edit personnel modal --}}
+<div class="modal fade" id="modalEditPersonnel" tabindex="-1" aria-labelledby="modalEditPersonnelLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditPersonnelLabel">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-edit-personnel">
+                    <input type="hidden" id="edit-personnel-id">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit-personnel-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="edit-personnel-email" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Employee ID</label>
+                            <input type="text" class="form-control" id="edit-personnel-employee">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Position / Designation</label>
+                            <input type="text" class="form-control" id="edit-personnel-designation">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">School / Office</label>
+                        <input type="text" class="form-control" id="edit-personnel-school">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="edit-personnel-status">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-deped" id="btn-save-personnel">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
         @if(auth()->user()->isAdmin() || auth()->user()->isSubAdmin())
             <a href="{{ route('personnel.create') }}" class="btn btn-deped"><i class="bi bi-person-plus me-1"></i> Add Personnel</a>
@@ -137,6 +197,9 @@
                             <th scope="col">Employee ID</th>
                             <th scope="col">Position</th>
                             <th scope="col">School/Office</th>
+                            @if($canEditPersonnel || $canDeletePersonnel)
+                                <th scope="col" class="col-actions">Actions</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody id="personnel-tbody"></tbody>
@@ -217,7 +280,13 @@
 (function() {
     var baseUrl = '{{ url("/") }}';
     var isAdmin = {{ $isAdmin ? 'true' : 'false' }};
+    window._canEditPersonnel = {{ $canEditPersonnel ? 'true' : 'false' }};
+    window._canDeletePersonnel = {{ $canDeletePersonnel ? 'true' : 'false' }};
     var loadAbort = null;
+    var csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '';
+    var editModalEl = document.getElementById('modalEditPersonnel');
+    var editPersonnelModal = editModalEl ? new bootstrap.Modal(editModalEl) : null;
+    var editForm = document.getElementById('form-edit-personnel');
 
     // Global state
     window._personnelPage = 1;
@@ -290,6 +359,20 @@
         var d = document.createElement('div');
         d.textContent = s;
         return d.innerHTML;
+    }
+
+    function escapeAttr(s) {
+        if (s == null) return '';
+        return String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function jsonHeaders() {
+        return {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        };
     }
 
 
@@ -381,10 +464,22 @@
             var showUrl = baseUrl + '/personnel/' + (p && p.id);
 
             rows.push('<tr class="personnel-row" data-user-id="' + (p && p.id) + '" tabindex="0" role="button" style="cursor: pointer;">');
-            rows.push('<td class="col-title"><a href="' + showUrl + '" class="text-decoration-none text-dark"><span class="text-truncate-cell d-inline-block" title="' + escapeHtml(name) + '">' + escapeHtml(name) + '</span></a></td>');
+            rows.push('<td class="col-title"><a href="' + showUrl + '" class="text-decoration-none text-dark"><span class="personnel-name-full" title="' + escapeHtml(name) + '">' + escapeHtml(name) + '</span></a></td>');
             rows.push('<td>' + escapeHtml(empId) + '</td>');
             rows.push('<td><span class="text-truncate-cell d-inline-block" title="' + escapeHtml(designation) + '">' + escapeHtml(designation) + '</span></td>');
             rows.push('<td><span class="text-truncate-cell d-inline-block" title="' + escapeHtml(school) + '">' + escapeHtml(school) + '</span></td>');
+
+            if (window._canEditPersonnel || window._canDeletePersonnel) {
+                var actions = '<div class="d-flex justify-content-start gap-1">';
+                if (window._canEditPersonnel) {
+                    actions += '<button type="button" class="btn btn-outline-secondary btn-sm btn-action-icon edit-user-btn" data-id="' + (p && p.id) + '" data-name="' + escapeAttr(name) + '" data-email="' + escapeAttr(p && p.email ? p.email : '') + '" data-employee="' + escapeAttr(empId) + '" data-designation="' + escapeAttr(designation) + '" data-school="' + escapeAttr(school) + '" data-status="' + escapeAttr(status) + '" title="Edit user" aria-label="Edit user"><i class="bi bi-pencil-square"></i></button>';
+                }
+                if (window._canDeletePersonnel) {
+                    actions += '<button type="button" class="btn btn-outline-secondary btn-sm btn-action-icon btn-delete delete-user-btn" data-id="' + (p && p.id) + '" data-name="' + escapeAttr(name) + '" title="Delete user" aria-label="Delete user"><i class="bi bi-trash"></i></button>';
+                }
+                actions += '</div>';
+                rows.push('<td class="col-actions">' + actions + '</td>');
+            }
 
             rows.push('</tr>');
         });
@@ -408,11 +503,24 @@
             var status = (p && p.status) || 'active';
             var role = (p && p.role) || 'personnel';
             var showUrl = baseUrl + '/personnel/' + (p && p.id);
+            var cardActions = '';
+            if (window._canEditPersonnel || window._canDeletePersonnel) {
+                cardActions += '<div class="personnel-card-actions">';
+                if (window._canEditPersonnel) {
+                    cardActions += '<button type="button" class="btn btn-outline-secondary btn-sm edit-user-card-btn" data-id="' + (p && p.id) + '" data-name="' + escapeAttr(name) + '" data-email="' + escapeAttr(p && p.email ? p.email : '') + '" data-employee="' + escapeAttr(empId) + '" data-designation="' + escapeAttr(designation) + '" data-school="' + escapeAttr(school) + '" data-status="' + escapeAttr(status) + '"><i class="bi bi-pencil-square me-1"></i>Edit</button>';
+                }
+                if (window._canDeletePersonnel) {
+                    cardActions += '<button type="button" class="btn btn-outline-secondary btn-sm btn-delete delete-user-card-btn" data-id="' + (p && p.id) + '" data-name="' + escapeAttr(name) + '"><i class="bi bi-trash me-1"></i>Delete</button>';
+                }
+                cardActions += '</div>';
+            }
+
             return '<div class="personnel-card-mobile" data-id="' + (p && p.id) + '">' +
                 '<div class="card-mobile-title"><a href="' + showUrl + '" class="text-decoration-none text-dark">' + escapeHtml(name) + '</a></div>' +
                 '<div class="card-mobile-row"><span class="card-mobile-label">Employee ID:</span><span>' + escapeHtml(empId) + '</span></div>' +
                 '<div class="card-mobile-row"><span class="card-mobile-label">Position:</span><span>' + escapeHtml(designation) + '</span></div>' +
                 '<div class="card-mobile-row"><span class="card-mobile-label">School:</span><span>' + escapeHtml(school) + '</span></div>' +
+                cardActions +
                 '</div>';
         }).join('');
         if (window.innerWidth < 768 && data.length > 0) wrap.classList.remove('d-none');
@@ -521,9 +629,10 @@
     if (table) {
         table.addEventListener('click', function(e) {
             var row = e.target.closest('tr.personnel-row');
-            if (!row || e.target.tagName === 'A') return;
-            var link = row.querySelector('a');
-            if (link) window.location.href = link.getAttribute('href');
+            if (row && !e.target.closest('a') && !e.target.closest('.btn-action-icon')) {
+                var link = row.querySelector('a');
+                if (link) window.location.href = link.getAttribute('href');
+            }
         });
     }
 
@@ -560,6 +669,123 @@
             checkboxes.forEach(function(cb) { cb.checked = false; });
         });
     }
+
+    function populateEditForm(dataset) {
+        if (!editForm) return;
+        document.getElementById('edit-personnel-id').value = dataset.id || '';
+        document.getElementById('edit-personnel-name').value = dataset.name || '';
+        document.getElementById('edit-personnel-email').value = dataset.email || '';
+        document.getElementById('edit-personnel-employee').value = dataset.employee || '';
+        document.getElementById('edit-personnel-designation').value = dataset.designation || '';
+        document.getElementById('edit-personnel-school').value = dataset.school || '';
+        document.getElementById('edit-personnel-status').value = dataset.status || 'active';
+    }
+
+    function handleEditClick(target) {
+        if (!window._canEditPersonnel || !target) return;
+        var dataset = target.dataset || {};
+        populateEditForm(dataset);
+        if (editPersonnelModal) editPersonnelModal.show();
+    }
+
+    function handleDelete(userId, userName) {
+        if (!window._canDeletePersonnel || !userId) return;
+        if (typeof Swal === 'undefined') {
+            if (confirm('Delete ' + userName + '?')) {
+                doDelete(userId);
+            }
+            return;
+        }
+        Swal.fire({
+            icon: 'warning',
+            title: 'Delete user?',
+            text: 'Delete ' + (userName || 'this user') + '? This cannot be undone.',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--deped-primary)',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                doDelete(userId);
+            }
+        });
+    }
+
+    async function doDelete(userId) {
+        try {
+            var r = await fetch(baseUrl + '/api/personnel/' + userId, { method: 'DELETE', headers: jsonHeaders(), credentials: 'same-origin' });
+            var json = await r.json().catch(function() { return {}; });
+            if (!r.ok) throw new Error(json.message || 'Failed to delete user.');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'success', title: 'Deleted', text: json.message || 'User deleted.', confirmButtonColor: 'var(--deped-primary)', timer: 4000, timerProgressBar: true });
+            }
+            loadPersonnel(true);
+        } catch (err) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Could not delete user.', confirmButtonColor: 'var(--deped-primary)' });
+            }
+        }
+    }
+
+    document.addEventListener('click', function(e) {
+        var editBtn = e.target.closest('.edit-user-btn');
+        if (editBtn) {
+            e.preventDefault();
+            handleEditClick(editBtn);
+            return;
+        }
+        var editCardBtn = e.target.closest('.edit-user-card-btn');
+        if (editCardBtn) {
+            e.preventDefault();
+            handleEditClick(editCardBtn);
+            return;
+        }
+        var deleteBtn = e.target.closest('.delete-user-btn');
+        if (deleteBtn) {
+            e.preventDefault();
+            handleDelete(deleteBtn.getAttribute('data-id'), deleteBtn.getAttribute('data-name'));
+            return;
+        }
+        var deleteCardBtn = e.target.closest('.delete-user-card-btn');
+        if (deleteCardBtn) {
+            e.preventDefault();
+            handleDelete(deleteCardBtn.getAttribute('data-id'), deleteCardBtn.getAttribute('data-name'));
+        }
+    });
+
+    document.getElementById('btn-save-personnel') && document.getElementById('btn-save-personnel').addEventListener('click', async function() {
+        if (!window._canEditPersonnel || !editForm) return;
+        var id = document.getElementById('edit-personnel-id').value;
+        if (!id) return;
+        var payload = {
+            name: document.getElementById('edit-personnel-name').value,
+            email: document.getElementById('edit-personnel-email').value,
+            employee_id: document.getElementById('edit-personnel-employee').value || null,
+            designation: document.getElementById('edit-personnel-designation').value || null,
+            school: document.getElementById('edit-personnel-school').value || null,
+            status: document.getElementById('edit-personnel-status').value || 'active'
+        };
+        var btn = this;
+        btn.disabled = true;
+        try {
+            var resp = await fetch(baseUrl + '/api/personnel/' + id, { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify(payload), credentials: 'same-origin' });
+            var json = await resp.json().catch(function() { return {}; });
+            if (!resp.ok) {
+                throw new Error(json.message || 'Failed to update user.');
+            }
+            if (editPersonnelModal) editPersonnelModal.hide();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'success', title: 'Saved', text: 'User updated successfully.', confirmButtonColor: 'var(--deped-primary)', timer: 4000, timerProgressBar: true });
+            }
+            loadPersonnel(true);
+        } catch (err) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Could not update user.', confirmButtonColor: 'var(--deped-primary)' });
+            }
+        } finally {
+            btn.disabled = false;
+        }
+    });
 
     // Initial load
     loadPersonnel();

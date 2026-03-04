@@ -10,10 +10,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --deped-primary: {{ auth()->check() ? (auth()->user()->theme == 'red' ? '#dc2626' : (auth()->user()->theme == 'green' ? '#16a34a' : '#1E35FF')) : '#1E35FF' }};
-            --deped-primary-light: {{ auth()->check() ? (auth()->user()->theme == 'red' ? '#f87171' : (auth()->user()->theme == 'green' ? '#4ade80' : '#4d5fff')) : '#4d5fff' }};
-            --deped-accent: {{ auth()->check() ? (auth()->user()->theme == 'red' ? '#fecaca' : (auth()->user()->theme == 'green' ? '#bbf7d0' : '#93c5fd')) : '#93c5fd' }};
-            --deped-shadow: {{ auth()->check() ? (auth()->user()->theme == 'red' ? 'rgba(220, 38, 38, 0.35)' : (auth()->user()->theme == 'green' ? 'rgba(22, 163, 74, 0.35)' : 'rgba(30, 53, 255, 0.35)')) : 'rgba(30, 53, 255, 0.35)' }};
+            --deped-primary: {{ auth()->check() ? (auth()->user()->theme == 'red' ? '#dc2626' : (auth()->user()->theme == 'green' ? '#16a34a' : (auth()->user()->theme == 'black' ? '#000000' : (auth()->user()->theme == 'deep-purple' ? '#6B46C1' : (auth()->user()->theme == 'yellow' ? '#EAB308' : '#1E35FF'))))) : '#1E35FF' }};
+            --deped-primary-light: {{ auth()->check() ? (auth()->user()->theme == 'red' ? '#f87171' : (auth()->user()->theme == 'green' ? '#4ade80' : (auth()->user()->theme == 'black' ? '#404040' : (auth()->user()->theme == 'deep-purple' ? '#9333EA' : (auth()->user()->theme == 'yellow' ? '#FDE047' : '#4d5fff'))))) : '#4d5fff' }};
+            --deped-accent: {{ auth()->check() ? (auth()->user()->theme == 'red' ? '#fecaca' : (auth()->user()->theme == 'green' ? '#bbf7d0' : (auth()->user()->theme == 'black' ? '#d1d5db' : (auth()->user()->theme == 'deep-purple' ? '#E9D5FF' : (auth()->user()->theme == 'yellow' ? '#FEF3C7' : '#93c5fd'))))) : '#93c5fd' }};
+            --deped-shadow: {{ auth()->check() ? (auth()->user()->theme == 'red' ? 'rgba(220, 38, 38, 0.35)' : (auth()->user()->theme == 'green' ? 'rgba(22, 163, 74, 0.35)' : (auth()->user()->theme == 'black' ? 'rgba(0, 0, 0, 0.35)' : (auth()->user()->theme == 'deep-purple' ? 'rgba(107, 70, 193, 0.35)' : (auth()->user()->theme == 'yellow' ? 'rgba(234, 179, 8, 0.35)' : 'rgba(30, 53, 255, 0.35)'))))) : 'rgba(30, 53, 255, 0.35)' }};
             --sidebar-width: 260px;
             --header-height: 64px;
         }

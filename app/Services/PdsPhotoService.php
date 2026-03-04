@@ -36,11 +36,16 @@ class PdsPhotoService
         $disk = Storage::disk('public');
         $dir = 'pds-photos';
         if (! $disk->exists($dir)) {
-            $disk->makeDirectory($dir);
+            $disk->makeDirectory($dir, 0755, true, true);
         }
-        $filename = $pdsId . '.' . $file->getClientOriginalExtension();
+        $extension = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+        $filename = $pdsId . '.' . $extension;
         $path = $file->storeAs($dir, $filename, 'public');
-        return $path;
+        $normalized = $this->normalizePath($path);
+        if ($normalized) {
+            $disk->setVisibility($normalized, 'public');
+        }
+        return $normalized;
     }
 
     /**
@@ -48,10 +53,11 @@ class PdsPhotoService
      */
     public function delete(?string $photoPath): void
     {
-        if ($photoPath === null || $photoPath === '') {
+        $normalized = $this->normalizePath($photoPath);
+        if ($normalized === null) {
             return;
         }
-        Storage::disk('public')->delete($photoPath);
+        Storage::disk('public')->delete($normalized);
     }
 
     /**
@@ -59,11 +65,29 @@ class PdsPhotoService
      */
     public function absolutePath(?string $photoPath): ?string
     {
-        if ($photoPath === null || $photoPath === '') {
+        $normalized = $this->normalizePath($photoPath);
+        if ($normalized === null) {
             return null;
         }
-        $path = storage_path('app/public/' . $photoPath);
-        return file_exists($path) ? $path : null;
+        $disk = Storage::disk('public');
+        try {
+            $path = method_exists($disk, 'path')
+                ? $disk->path($normalized)
+                : storage_path('app/public/' . $normalized);
+        } catch (\Throwable $e) {
+            $path = storage_path('app/public/' . $normalized);
+        }
+        return is_readable($path) ? $path : null;
+    }
+
+    private function normalizePath(?string $path): ?string
+    {
+        if ($path === null) {
+            return null;
+        }
+        $path = str_replace('\\', '/', $path);
+        $path = ltrim($path, '/');
+        return $path === '' ? null : $path;
     }
 
     private function loadImage(string $path, string $mime): ?\GdImage

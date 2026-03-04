@@ -46,6 +46,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/personnel/{user}/pds/upload-photo', [PdsController::class, 'uploadPhoto'])->name('personnel.pds.upload-photo')->middleware('role:admin,sub-admin');
     Route::get('/api/personnel/{user}/pds/importable-trainings', [PdsController::class, 'importableTrainings'])->name('api.personnel.pds.importable-trainings')->middleware('role:admin,sub-admin');
     Route::get('/api/personnel', [PersonnelController::class, 'list'])->name('api.personnel.list');
+    Route::put('/api/personnel/{user}', [PersonnelController::class, 'update'])->name('api.personnel.update')->middleware('role:admin,sub-admin');
+    Route::delete('/api/personnel/{user}', [PersonnelController::class, 'destroy'])->name('api.personnel.destroy')->middleware('role:admin');
     Route::get('/api/personnel/{user}/trainings', [PersonnelController::class, 'trainings'])->name('api.personnel.trainings');
 
     // Trainings management (admin + sub-admin; sub-admin cannot delete)

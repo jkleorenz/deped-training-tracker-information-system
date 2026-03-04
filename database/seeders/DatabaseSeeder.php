@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
         // Admin (full) and Mini Admin (sub-admin) accounts
         User::create([
             'name' => 'System Administrator',
-            'email' => 'admin@deped.local',
+            'email' => 'admin@deped.gov.ph',
             'password' => Hash::make('password'),
             'role' => User::ROLE_ADMIN,
         ]);
@@ -179,7 +179,7 @@ class DatabaseSeeder extends Seeder
         ], ['attended_date' => null, 'remarks' => null]);
 
         $this->command->info('--- Admin accounts (change password after first login) ---');
-        $this->command->info('Admin:       admin@deped.local / password');
+        $this->command->info('Admin:       admin@deped.gov.ph / password');
         $this->command->info('Mini Admin:  subadmin@deped.local / password');
         $this->command->info('--- Personnel (password: password) ---');
         $this->command->info('juan.delacruz@deped.local, maria.santos@deped.local, jake.cartilla@deped.local, juben.moring@deped.local, jayv.magallanes@deped.local');

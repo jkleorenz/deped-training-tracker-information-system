@@ -939,7 +939,7 @@
                 <div class="pds-collapsible-section expanded" id="voluntarySection" data-section="voluntary">
                     <div class="pds-collapsible-header" onclick="toggleSection('voluntarySection')">
                         <div class="pds-collapsible-title">
-                            <i class="bi bi-hand-heart"></i>
+                            <i class="bi bi-heart"></i>
                             <span>VI. Voluntary Work / Civic / NGO Organizations</span>
                             <span class="pds-collapsible-badge" id="voluntaryCount" style="display: none;">
                                 <span class="count">0</span> entries recorded

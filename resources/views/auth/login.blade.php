@@ -30,6 +30,7 @@
     /* Left panel – branding */
     .login-brand {
         background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+        /* background: #ff0381; */
         position: relative;
         padding: 60px 40px;
         display: flex;
@@ -259,7 +260,9 @@
                                     <div class="logo-wrap">
                                         <img src="{{ asset('images/deped-maasin-logo.png') }}" alt="{{ config('app.name') }}">
                                     </div>
-                                    <h1 class="brand-title">Maasin City Division</h1>
+                                    <h1 class="brand-title">Tap. Track. Done.
+                                         <i class="bi bi-patch-check-fill verified"></i>
+                                    </h1>
                                     <p class="brand-subtitle">Information System</p>
                                 </div>
                             </div>

@@ -191,11 +191,38 @@ class PersonalDataSheet extends Model
     /** Public URL for the passport-sized photo (4.5×3.5 cm). */
     public function getPhotoUrlAttribute(): ?string
     {
-        if (empty($this->photo_path)) {
+        $path = $this->normalizedPhotoPath();
+        if ($path === null) {
             return null;
         }
-        return Storage::disk('public')->exists($this->photo_path)
-            ? asset('storage/' . $this->photo_path)
-            : null;
+
+        $disk = Storage::disk('public');
+        if (! $disk->exists($path)) {
+            return null;
+        }
+
+        $relative = 'storage/' . ltrim($path, '/');
+
+        if (! app()->runningInConsole()) {
+            $request = request();
+            if ($request && $request->getHost()) {
+                $base = rtrim($request->getSchemeAndHttpHost(), '/');
+                return $base . '/' . ltrim($relative, '/');
+            }
+        }
+
+        return asset($relative);
+    }
+
+    private function normalizedPhotoPath(): ?string
+    {
+        if ($this->photo_path === null || $this->photo_path === '') {
+            return null;
+        }
+
+        $path = str_replace('\\', '/', $this->photo_path);
+        $path = ltrim($path, '/');
+
+        return $path === '' ? null : $path;
     }
 }

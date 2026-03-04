@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'My Dashboard - ' . config('app.name'))
+@section('title', 'My Trainings - ' . config('app.name'))
 
 @push('styles')
 <style>
-.dashboard-personnel .card-header.card-header-green { background-color: var(--deped-primary) !important; color: #fff; }
-.dashboard-personnel .card-header.card-header-green .mb-0 { color: #fff; }
+.dashboard-personnel .card-header.card-header-green { background-color: var(--theme-accent) !important; color: var(--text-inverse); }
+.dashboard-personnel .card-header.card-header-green .mb-0 { color: var(--text-inverse); }
 .dashboard-personnel .card-body { padding: 1.25rem 1.25rem; }
 .dashboard-personnel .card-hover { transition: box-shadow 0.2s ease; }
-.dashboard-personnel .card-hover:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-.dashboard-personnel .stat-card-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--deped-accent); color: var(--deped-primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
-.dashboard-personnel .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--deped-primary); }
+.dashboard-personnel .card-hover:hover { box-shadow: var(--shadow-md); }
+.dashboard-personnel .stat-card-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--bg-hover); color: var(--theme-accent); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
+.dashboard-personnel .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--theme-accent); }
 .dashboard-personnel .d-flex.justify-content-between.mb-4 .btn { display: inline-flex; align-items: center; justify-content: center; }
 
 /* ——— Trainings table: scanability, density, sticky header ——— */
@@ -18,9 +18,9 @@
 .trainings-table { border-collapse: collapse; }
 .trainings-table thead th {
     position: sticky; top: 0; z-index: 2;
-    background: #f1f5f9; color: #334155;
+    background: var(--bg-table-header); color: var(--text-primary);
     padding: 0.6rem 0.75rem; font-size: 0.8125rem; font-weight: 600;
-    white-space: nowrap; border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap; border-bottom: 2px solid var(--border-table);
 }
 .trainings-table tbody td {
     padding: 0.5rem 0.75rem; vertical-align: middle;
@@ -28,16 +28,16 @@
     height: 48px; max-height: 56px; box-sizing: border-box;
 }
 .trainings-table tbody tr { transition: background 0.15s ease; }
-.trainings-table tbody tr:nth-child(even) { background: #fafbfc; }
-.trainings-table tbody tr:nth-child(odd) { background: #fff; }
-.trainings-table tbody tr:hover { background: #eef4ff !important; }
-.trainings-table tbody tr.selected { background: #e0e7ff !important; outline: 1px solid var(--deped-primary); outline-offset: -1px; }
-.trainings-table .col-title { font-weight: 600; color: #1e293b; }
+.trainings-table tbody tr:nth-child(even) { background: var(--bg-input); }
+.trainings-table tbody tr:nth-child(odd) { background: var(--bg-table); }
+.trainings-table tbody tr:hover { background: var(--bg-hover) !important; }
+.trainings-table tbody tr.selected { background: var(--bg-hover) !important; outline: 1px solid var(--theme-accent); outline-offset: -1px; }
+.trainings-table .col-title { font-weight: 600; color: var(--text-primary); }
 .trainings-table .col-expand { width: 2.25rem; padding-left: 0.5rem !important; }
 .trainings-table .col-actions { width: 6rem; }
 .trainings-table .text-truncate-cell { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trainings-table .sortable { cursor: pointer; user-select: none; }
-.trainings-table .sortable:hover { color: var(--deped-primary); }
+.trainings-table .sortable:hover { color: var(--theme-accent); }
 .trainings-table .sortable .sort-icon { opacity: 0.4; margin-left: 0.25rem; }
 .trainings-table .sortable[aria-sort="ascending"] .sort-icon-desc { display: none; }
 .trainings-table .sortable[aria-sort="ascending"] .sort-icon-asc { display: inline; }
@@ -45,7 +45,7 @@
 .trainings-table .sortable[aria-sort="descending"] .sort-icon-desc { display: inline; }
 .trainings-table .sortable[aria-sort="none"] .sort-icon-asc,
 .trainings-table .sortable[aria-sort="none"] .sort-icon-desc { display: none; }
-.trainings-table .row-detail { background: #f8fafc !important; }
+.trainings-table .row-detail { background: var(--bg-hover) !important; }
 .trainings-table .row-detail td { padding: 0.75rem 1rem; font-size: 0.8125rem; vertical-align: top; border-top: none; }
 .trainings-table .row-detail .detail-grid { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; }
 .trainings-table .row-detail .detail-label { color: #64748b; }
@@ -84,12 +84,27 @@
 <div class="dashboard-personnel">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="page-title mb-1">My Dashboard</h4>
+            <h4 class="page-title mb-1">My Trainings</h4>
             <p class="text-muted small mb-0">Your trainings and personnel info</p>
         </div>
         <div>
             <button type="button" class="btn btn-outline-secondary me-1" data-bs-toggle="modal" data-bs-target="#modalImportExcel"><i class="bi bi-upload me-1"></i> Import Excel</button>
             <a href="{{ route('reports.excel') }}" class="btn btn-outline-success" title="Export seminars and trainings attended to Excel"><i class="bi bi-file-earmark-excel me-1"></i> Export STA Excel</a>
+        </div>
+    </div>
+
+    {{-- My Trainings count card --}}
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="card h-100 card-hover">
+                <div class="card-body d-flex align-items-start gap-3">
+                    <div class="stat-card-icon flex-shrink-0"><i class="bi bi-journal-check"></i></div>
+                    <div class="min-w-0">
+                        <h6 class="text-muted mb-1">My Trainings</h6>
+                        <p class="mb-0 stat-number" id="my-trainings-count">0</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -553,6 +568,12 @@
             window._trainingsPage = meta.current_page || 1;
 
             syncUrl(getQueryParams());
+
+            // Update My Trainings count
+            var countEl = document.getElementById('my-trainings-count');
+            if (countEl) {
+                countEl.textContent = (meta && meta.total !== undefined) ? meta.total : (data.length || 0);
+            }
 
             if (data.length === 0 && (meta.total === undefined || meta.total === 0)) {
                 if (empty) {

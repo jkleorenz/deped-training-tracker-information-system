@@ -4,15 +4,15 @@
 
 @push('styles')
 <style>
-.personnel-profile .card-header.card-header-green { background-color: var(--deped-primary) !important; color: #fff; }
-.personnel-profile .card-header.card-header-green .mb-0 { color: #fff; }
+.personnel-profile .card-header.card-header-green { background-color: #f8f9fa !important; color: #334155; border: 1px solid #dee2e6; border-bottom: 2px solid #dee2e6; }
+.personnel-profile .card-header.card-header-green .mb-0 { color: #334155; }
 .personnel-profile .card-body { padding: 1.25rem 1.25rem; }
 .personnel-profile .table td { padding: 0.75rem 0.85rem; vertical-align: middle; }
 .personnel-profile .table thead th { padding: 0.75rem 0.85rem; white-space: nowrap; }
 .personnel-profile .table-responsive { border-radius: 0.25rem; }
 .personnel-profile .card-hover { transition: box-shadow 0.2s ease; }
 .personnel-profile .card-hover:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-.personnel-profile .stat-card-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--deped-accent); color: var(--deped-primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
+.personnel-profile .stat-card-icon { width: 48px; height: 48px; border-radius: 12px; color: var(--deped-primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; }
 .personnel-profile .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--deped-primary); }
 @media (min-width: 992px) {
     .personnel-profile .table thead th { position: sticky; top: 0; background: #f8f9fa; z-index: 1; box-shadow: 0 1px 0 0 #dee2e6; }

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireframe — Admin Dashboard Redesign · DepEd IS</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Segoe Print', cursive;
+    background: #f5f5f5;
+    color: #333;
+    font-size: 13px;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    background: #fff;
+    border: 2px solid #999;
+    border-radius: 6px;
+    padding: 12px 18px;
+    margin: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    font-size: 12px;
+  }
+  .legend-title { font-weight: bold; font-size: 13px; margin-right: 8px; }
+  .badge-reuse { background: #4CAF50; color: #fff; padding: 2px 8px; border-radius: 3px; font-weight: bold; font-size: 11px; }
+  .badge-new   { background: #FF9800; color: #fff; padding: 2px 8px; border-radius: 3px; font-weight: bold; font-size: 11px; }
+  .badge-fix   { background: #f44336; color: #fff; padding: 2px 8px; border-radius: 3px; font-weight: bold; font-size: 11px; }
+
+  /* ── Shell ── */
+  .shell {
+    display: flex;
+    height: calc(100vh - 120px);
+    min-height: 600px;
+    background: #fff;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 0 16px 16px;
+    box-shadow: 4px 4px 0 #ccc;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: #fff;
+    border-right: 2px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .sidebar-badge {
+    position: absolute; top: 6px; right: 6px;
+    background: #4CAF50; color: #fff;
+    padding: 2px 6px; border-radius: 3px;
+    font-size: 10px; font-weight: bold;
+    font-family: Arial, sans-serif;
+  }
+  .sidebar-brand {
+    padding: 14px 16px;
+    border-bottom: 1px dashed #ccc;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sidebar-logo {
+    width: 36px; height: 36px;
+    background: #e0e0e0;
+    border: 2px solid #999;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #666; font-style: italic;
+  }
+  .sidebar-brand-text { font-weight: bold; font-size: 12px; color: #222; line-height: 1.3; }
+  .sidebar-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    color: #555;
+  }
+  .nav-item.active {
+    background: #e0e0e0;
+    border: 1.5px solid #999;
+    font-weight: bold;
+    color: #111;
+  }
+  .nav-icon {
+    width: 18px; height: 18px;
+    background: #ccc;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .nav-item.active .nav-icon { background: #888; }
+
+  /* ── NEW: Role-based nav indicator ── */
+  .nav-badge {
+    margin-left: auto;
+    background: #ddd; color: #555;
+    font-size: 9px; padding: 1px 5px;
+    border-radius: 999px;
+    border: 1px solid #bbb;
+    font-family: Arial, sans-serif;
+  }
+
+  .sidebar-footer {
+    padding: 12px 10px;
+    border-top: 1px dashed #ccc;
+  }
+  .btn-logout {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1.5px dashed #ccc;
+    cursor: pointer;
+    color: #888;
+    width: 100%;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+  }
+
+  /* ── Main ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* ── Top Header ── */
+  .top-header {
+    height: 56px;
+    border-bottom: 1px dashed #ccc;
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+    gap: 12px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .top-header-badge {
+    position: absolute; top: 4px; right: 4px;
+    background: #4CAF50; color: #fff;
+    padding: 2px 6px; border-radius: 3px;
+    font-size: 10px; font-weight: bold;
+    font-family: Arial, sans-serif;
+  }
+  .header-date-pill {
+    display: flex; align-items: center; gap: 6px;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: #555;
+  }
+  .date-icon { width: 14px; height: 14px; background: #ccc; border-radius: 2px; }
+  .header-spacer { flex: 1; }
+
+  /* NEW: Quick search in header */
+  .header-search {
+    display: flex; align-items: center; gap: 6px;
+    border: 1.5px dashed #bbb;
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 12px; color: #aaa;
+    width: 200px;
+  }
+  .search-icon { width: 14px; height: 14px; background: #ccc; border-radius: 50%; }
+
+  .user-avatar-wrap {
+    display: flex; align-items: center; gap: 8px;
+    border: 1.5px solid #ccc;
+    border-radius: 8px;
+    padding: 4px 10px;
+  }
+  .user-avatar {
+    width: 32px; height: 32px;
+    background: #ccc;
+    border-radius: 8px;
+    border: 1.5px solid #999;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: bold; color: #555;
+  }
+  .user-info-text { font-size: 11px; color: #555; line-height: 1.4; }
+  .user-info-name { font-weight: bold; color: #222; }
+  .chevron { width: 10px; height: 10px; border: 1.5px solid #999; border-left: 0; border-top: 0; transform: rotate(45deg) translateY(-2px); }
+
+  /* ── Content ── */
+  .content {
+    flex: 1;
+    overflow: auto;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ── Page Header ── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    position: relative;
+  }
+  .page-header-badge {
+    position: absolute; top: -4px; right: -4px;
+    background: #f44336; color: #fff;
+    padding: 2px 6px; border-radius: 3px;
+    font-size: 9px; font-weight: bold;
+    font-family: Arial, sans-serif;
+  }
+  .page-title-block .page-title { font-size: 18px; font-weight: bold; color: #111; }
+  .page-title-block .page-subtitle { font-size: 11px; color: #888; margin-top: 2px; }
+  .page-header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 7px 14px;
+    border: 2px solid #999;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    color: #333;
+  }
+  .btn-primary { background: #e0e0e0; border-color: #888; }
+  .btn-outline { background: transparent; border-style: dashed; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+
+  /* ── Stat Cards ── */
+  .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .stat-card {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    position: relative;
+    cursor: pointer;
+  }
+  .stat-card:hover { border-style: solid; border-color: #888; }
+  .stat-card-badge {
+    position: absolute; top: 6px; right: 6px;
+    background: #FF9800; color: #fff;
+    padding: 2px 6px; border-radius: 3px;
+    font-size: 10px; font-weight: bold;
+    font-family: Arial, sans-serif;
+  }
+  .stat-icon {
+    width: 44px; height: 44px;
+    background: #e8e8e8;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .stat-icon-inner { width: 22px; height: 22px; background: #aaa; border-radius: 3px; }
+  .stat-content { flex: 1; }
+  .stat-label { font-size: 11px; color: #888; margin-bottom: 4px; }
+  .stat-number { font-size: 28px; font-weight: bold; color: #222; line-height: 1; }
+  .stat-trend { font-size: 10px; color: #888; margin-top: 4px; }
+  .stat-link { font-size: 11px; color: #888; margin-top: 2px; text-decoration: underline; }
+
+  /* ── Quick Actions ── */
+  .section-title { font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .quick-actions-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .quick-action-tile {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    padding: 16px 12px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .quick-action-tile:hover { border-color: #888; }
+  .tile-badge {
+    position: absolute; top: -6px; right: -6px;
+    background: #FF9800; color: #fff;
+    padding: 2px 6px; border-radius: 3px;
+    font-size: 9px; font-weight: bold;
+    font-family: Arial, sans-serif;
+  }
+  .tile-icon {
+    width: 42px; height: 42px;
+    background: #e8e8e8;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    margin: 0 auto 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tile-icon-inner { width: 22px; height: 22px; background: #aaa; border-radius: 3px; }
+  .tile-label { font-size: 12px; font-weight: bold; color: #333; }
+  .tile-desc { font-size: 10px; color: #aaa; margin-top: 3px; }
+
+  /* ── Recent Activity (NEW) ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .panel {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+  .panel-header {
+    background: #f0f0f0;
+    border-bottom: 1.5px solid #ccc;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-badge {
+    position: absolute; top: 6px; right: 6px;
+    background: #FF9800; color: #fff;
+    padding: 2px 6px; border-radius: 3px;
+    font-size: 9px; font-weight: bold;
+    font-family: Arial, sans-serif;
+  }
+  .panel-body { padding: 12px 14px; }
+  .activity-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px dashed #eee;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot {
+    width: 8px; height: 8px;
+    background: #bbb; border-radius: 50%;
+    margin-top: 4px; flex-shrink: 0;
+  }
+  .activity-text { font-size: 11px; color: #555; line-height: 1.4; }
+  .activity-time { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+  /* Training summary mini table */
+  .mini-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .mini-table th { background: #f0f0f0; padding: 6px 8px; text-align: left; border-bottom: 1.5px solid #ccc; color: #555; font-weight: bold; }
+  .mini-table td { padding: 6px 8px; border-bottom: 1px dashed #eee; color: #444; }
+  .mini-table tr:last-child td { border-bottom: none; }
+
+  /* ── Fix annotations ── */
+  .fix-note {
+    background: #fff3f3;
+    border: 1.5px solid #f44336;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #c62828;
+    margin-top: 4px;
+    font-family: Arial, sans-serif;
+  }
+  .fix-note strong { display: block; margin-bottom: 2px; }
+
+  /* ── Annotations panel ── */
+  .annotations {
+    background: #fff;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 0 16px 16px;
+    font-size: 12px;
+  }
+  .annotations h3 { font-size: 14px; margin-bottom: 10px; color: #333; }
+  .annotation-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .annotation-item { display: flex; gap: 8px; align-items: flex-start; }
+  .annotation-num { font-weight: bold; color: #555; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- Legend -->
+<div class="legend">
+  <span class="legend-title">Component Legend:</span>
+  <span><span class="badge-reuse">[REUSE]</span> Existing component from codebase</span>
+  <span><span class="badge-new">[NEW]</span> New component to be created</span>
+  <span><span class="badge-fix">[FIX]</span> Bug fix / design correction applied</span>
+  <br>
+  <span style="font-style:italic; color:#666; font-size:11px; font-family:Arial,sans-serif;">
+    Wireframe: Admin Dashboard — Proposed redesign incorporating bug fixes, UX improvements &amp; new panels
+  </span>
+</div>
+
+<!-- Shell -->
+<div class="shell">
+
+  <!-- ════ SIDEBAR ════ -->
+  <!-- REUSABLE: Sidebar layout from resources/views/layouts/app.blade.php -->
+  <div class="sidebar">
+    <span class="sidebar-badge">[REUSE] Sidebar</span>
+
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">[img]</div>
+      <div class="sidebar-brand-text">DepEd IS<br><span style="font-weight:normal;font-size:10px;color:#888;">Maasin City</span></div>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <!-- FIX: Each nav item gets aria-current="page" when active -->
+      <div class="nav-item active" aria-current="page">
+        <div class="nav-icon"></div>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon"></div>
+        <span>Personal Data Sheet</span>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon"></div>
+        <span>Personnel</span>
+        <span class="nav-badge">Admin</span>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon"></div>
+        <span>Trainings</span>
+        <span class="nav-badge">Admin</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" type="button">
+        <div class="nav-icon" style="background:#ddd;"></div>
+        <span>Log out</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════ MAIN ════ -->
+  <div class="main">
+
+    <!-- ── Top Header ── -->
+    <!-- REUSABLE: Top header from resources/views/layouts/app.blade.php -->
+    <header class="top-header">
+      <div class="header-date-pill">
+        <div class="date-icon"></div>
+        <span>March 03, 2026</span>
+      </div>
+      <div class="header-spacer"></div>
+
+      <!-- NEW: Global quick search in header (improvement) -->
+      <!-- NEW COMPONENT: GlobalSearch (to be created) -->
+      <div class="header-search" style="position:relative;">
+        <span class="badge-new" style="position:absolute;top:-8px;right:-8px;font-size:9px;padding:2px 5px;border-radius:3px;">[NEW]</span>
+        <div class="search-icon"></div>
+        <span>Quick search…</span>
+        <span style="margin-left:auto;font-size:10px;color:#ccc;font-family:Arial,sans-serif;">⌘K</span>
+      </div>
+
+      <!-- REUSABLE: User dropdown from resources/views/layouts/app.blade.php -->
+      <div class="user-avatar-wrap">
+        <div class="user-avatar">JD</div>
+        <div class="user-info-text">
+          <div class="user-info-name">Juan Dela Cruz</div>
+          <div>juan@example.com</div>
+        </div>
+        <div class="chevron"></div>
+      </div>
+      <div class="top-header-badge">[REUSE] Header</div>
+    </header>
+
+    <!-- ── Content ── -->
+    <!-- FIX: .content-area gets role="main" (or converted to <main>) -->
+    <main class="content" role="main">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-title-block">
+          <!-- FIX: <h4> → <h1 class="page-title"> for correct document outline -->
+          <div class="page-title" role="heading" aria-level="1">Admin Dashboard</div>
+          <div class="page-subtitle">Overview of personnel and trainings</div>
+        </div>
+        <div class="page-header-actions">
+          <!-- REUSABLE: btn-deped from app.blade.php -->
+          <button class="btn btn-primary" style="position:relative;">
+            <span class="badge-reuse" style="position:absolute;top:-8px;right:-8px;font-size:9px;padding:2px 5px;border-radius:3px;">[REUSE]</span>
+            [icon] Manage Personnel
+          </button>
+          <!-- REUSABLE: btn-outline-secondary -->
+          <button class="btn btn-outline">
+            [icon] Export to Excel
+          </button>
+        </div>
+        <!-- FIX annotation: h4→h1 -->
+        <div class="page-header-badge">[FIX] h4→h1</div>
+      </div>
+
+      <!-- Stat Cards Row -->
+      <!-- REUSABLE: stat cards pattern from dashboard/admin.blade.php -->
+      <div class="stat-row">
+
+        <div class="stat-card">
+          <span class="stat-card-badge">[REUSE] StatCard</span>
+          <div class="stat-icon"><div class="stat-icon-inner"></div></div>
+          <div class="stat-content">
+            <div class="stat-label">Personnel</div>
+            <div class="stat-number">48</div>
+            <div class="stat-link">View all →</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-card-badge">[REUSE] StatCard</span>
+          <div class="stat-icon"><div class="stat-icon-inner"></div></div>
+          <div class="stat-content">
+            <div class="stat-label">Trainings / Seminars</div>
+            <div class="stat-number">127</div>
+            <div class="stat-link">Manage →</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Actions -->
+      <div>
+        <div class="section-title">[icon] Quick Actions</div>
+        <div class="quick-actions-grid">
+
+          <!-- REUSABLE: quick-action-tile from dashboard/admin.blade.php -->
+          <div class="quick-action-tile">
+            <div class="tile-icon"><div class="tile-icon-inner"></div></div>
+            <div class="tile-label">Add Training</div>
+            <div class="tile-desc">Create new seminar</div>
+          </div>
+
+          <div class="quick-action-tile">
+            <div class="tile-icon"><div class="tile-icon-inner"></div></div>
+            <div class="tile-label">Add Personnel</div>
+            <div class="tile-desc">Register new user</div>
+          </div>
+
+          <!-- FIX: Was linking to /trainings, now opens Export modal directly -->
+          <div class="quick-action-tile" style="position:relative;">
+            <div class="tile-badge">[FIX]</div>
+            <div class="tile-icon"><div class="tile-icon-inner"></div></div>
+            <div class="tile-label">Export Excel</div>
+            <div class="tile-desc">Opens modal directly</div>
+          </div>
+
+          <!-- FIX: Was linking to /trainings, now opens Import modal directly -->
+          <div class="quick-action-tile" style="position:relative;">
+            <div class="tile-badge">[FIX]</div>
+            <div class="tile-icon"><div class="tile-icon-inner"></div></div>
+            <div class="tile-label">Import Excel</div>
+            <div class="tile-desc">Opens modal directly</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- NEW: Two-column bottom section -->
+      <div class="two-col">
+
+        <!-- NEW COMPONENT: RecentActivity panel -->
+        <div class="panel" style="position:relative;">
+          <span class="badge-new" style="position:absolute;top:6px;right:6px;font-size:9px;padding:2px 5px;border-radius:3px;font-family:Arial,sans-serif;">[NEW] RecentActivity</span>
+          <div class="panel-header">
+            Recent Activity
+            <a style="font-size:11px;font-weight:normal;color:#888;text-decoration:underline;cursor:pointer;">View all</a>
+          </div>
+          <div class="panel-body">
+            <div class="activity-item">
+              <div class="activity-dot"></div>
+              <div>
+                <div class="activity-text"><strong>Maria Santos</strong> completed INSET 2026</div>
+                <div class="activity-time">2 hours ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot"></div>
+              <div>
+                <div class="activity-text">New training <strong>Leadership Seminar</strong> added</div>
+                <div class="activity-time">Yesterday</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot"></div>
+              <div>
+                <div class="activity-text"><strong>Juan Dela Cruz</strong> imported 12 trainings from Excel</div>
+                <div class="activity-time">2 days ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot"></div>
+              <div>
+                <div class="activity-text">New personnel <strong>Ana Reyes</strong> registered</div>
+                <div class="activity-time">3 days ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot"></div>
+              <div>
+                <div class="activity-text"><strong>Pedro Cruz</strong> updated PDS profile</div>
+                <div class="activity-time">5 days ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW COMPONENT: UpcomingTrainings panel -->
+        <div class="panel" style="position:relative;">
+          <span class="badge-new" style="position:absolute;top:6px;right:6px;font-size:9px;padding:2px 5px;border-radius:3px;font-family:Arial,sans-serif;">[NEW] UpcomingTrainings</span>
+          <div class="panel-header">
+            Upcoming / Recent Trainings
+            <a style="font-size:11px;font-weight:normal;color:#888;text-decoration:underline;cursor:pointer;">Manage</a>
+          </div>
+          <div class="panel-body">
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>Training / Seminar</th>
+                  <th>Date</th>
+                  <th style="text-align:right;">Hrs</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>INSET 2026 — In-Service Training</td>
+                  <td>Mar 10, 2026</td>
+                  <td style="text-align:right;">8</td>
+                </tr>
+                <tr>
+                  <td>Leadership & Management Seminar</td>
+                  <td>Mar 15, 2026</td>
+                  <td style="text-align:right;">16</td>
+                </tr>
+                <tr>
+                  <td>Technical Skills Workshop</td>
+                  <td>Mar 20, 2026</td>
+                  <td style="text-align:right;">6</td>
+                </tr>
+                <tr>
+                  <td>Data Privacy Orientation</td>
+                  <td>Apr 2, 2026</td>
+                  <td style="text-align:right;">4</td>
+                </tr>
+                <tr>
+                  <td style="color:#aaa;font-style:italic;" colspan="3">+ 3 more trainings this month</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Annotations -->
+<div class="annotations">
+  <h3>Design Notes &amp; Key Changes</h3>
+  <div class="annotation-list">
+    <div class="annotation-item">
+      <span class="annotation-num">①</span>
+      <div><strong>[FIX] h1 heading</strong> — Page title changed from <code>&lt;h4&gt;</code> to <code>&lt;h1 class="page-title"&gt;</code> for correct document outline and screen reader compatibility across all pages.</div>
+    </div>
+    <div class="annotation-item">
+      <span class="annotation-num">②</span>
+      <div><strong>[FIX] role="main"</strong> — <code>.content-area</code> div gains <code>role="main"</code> (or converted to <code>&lt;main&gt;</code>). Authenticated layout currently has no main landmark.</div>
+    </div>
+    <div class="annotation-item">
+      <span class="annotation-num">③</span>
+      <div><strong>[FIX] Quick action tiles</strong> — "Export Excel" and "Import Excel" tiles now open Bootstrap modals directly instead of navigating to <code>/trainings</code>. This matches user intent and avoids confusion.</div>
+    </div>
+    <div class="annotation-item">
+      <span class="annotation-num">④</span>
+      <div><strong>[FIX] aria-current="page"</strong> — Active sidebar nav item gets <code>aria-current="page"</code> attribute for screen reader compatibility.</div>
+    </div>
+    <div class="annotation-item">
+      <span class="annotation-num">⑤</span>
+      <div><strong>[NEW] RecentActivity panel</strong> — Shows latest user actions (new personnel, training additions, imports). Provides at-a-glance audit trail. Backend: log model or activity log package.</div>
+    </div>
+    <div class="annotation-item">
+      <span class="annotation-num">⑥</span>
+      <div><strong>[NEW] UpcomingTrainings panel</strong> — Shows next 3–5 trainings sorted by date. Reuses existing <code>/api/trainings</code> endpoint with <code>?sort=start_date&amp;direction=asc</code>. No new backend work needed.</div>
+    </div>
+    <div class="annotation-item">
+      <span class="annotation-num">⑦</span>
+      <div><strong>[NEW] Global quick search</strong> — Header search (⌘K) for fast navigation to personnel or trainings. Helps power users jump directly to records without sidebar navigation.</div>
+    </div>
+    <div class="annotation-item">
+      <span class="annotation-num">⑧</span>
+      <div><strong>[FIX] aria-expanded on sidebar toggle</strong> — Menu button correctly announces open/closed state via <code>aria-expanded</code> and Escape key closes the mobile sidebar.</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

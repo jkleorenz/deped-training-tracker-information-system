@@ -138,6 +138,39 @@ class PersonnelController extends Controller
     }
 
     /**
+     * Update a personnel record via JSON (name, email, status, role metadata).
+     */
+    public function update(Request $request, User $user): JsonResponse
+    {
+        $this->authorize('update', $user);
+
+        $validated = $request->validate([
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'email' => ['sometimes', 'required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'employee_id' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'designation' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'school' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'status' => ['sometimes', 'required', 'string', 'in:active,inactive'],
+        ]);
+
+        $user->update($validated);
+
+        return response()->json(['data' => $user]);
+    }
+
+    /**
+     * Delete a personnel record (admin only).
+     */
+    public function destroy(User $user): JsonResponse
+    {
+        $this->authorize('delete', $user);
+
+        $user->delete();
+
+        return response()->json(['message' => 'Personnel deleted.']);
+    }
+
+    /**
      * JSON: list personnel for AJAX (admin and sub-admin).
      */
     public function list(Request $request): JsonResponse
@@ -160,7 +193,11 @@ class PersonnelController extends Controller
 
         $query->orderBy('name');
 
-        $perPage = min((int) $request->input('per_page', 50), 100);
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 25, 50], true)) {
+            $perPage = 10;
+        }
+        $perPage = min(max($perPage, 1), 100);
         $personnel = $query->paginate($perPage, ['id', 'name', 'email', 'employee_id', 'designation', 'school', 'role', 'status']);
 
         return response()->json([
@@ -170,6 +207,8 @@ class PersonnelController extends Controller
                 'per_page' => $personnel->perPage(),
                 'current_page' => $personnel->currentPage(),
                 'last_page' => $personnel->lastPage(),
+                'from' => $personnel->firstItem(),
+                'to' => $personnel->lastItem(),
             ],
         ]);
     }

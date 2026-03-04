@@ -563,6 +563,7 @@ window._canDeleteTraining = {!! json_encode($canDeleteTraining) !!};
             renderCards(data, meta);
             renderPagination(meta);
             updateSortIndicators();
+            // Rebind row expand events after table re-render
             bindRowExpand();
         } catch (e) {
             if (e.name === 'AbortError') return;
@@ -687,6 +688,12 @@ window._canDeleteTraining = {!! json_encode($canDeleteTraining) !!};
     function bindRowExpand() {
         var tbody = document.getElementById('trainings-tbody');
         if (!tbody) return;
+        
+        // Remove existing event listener to prevent duplicates
+        var newTbody = tbody.cloneNode(true);
+        tbody.parentNode.replaceChild(newTbody, tbody);
+        tbody = newTbody;
+        
         tbody.addEventListener('click', function(e) {
             var expandBtn = e.target.closest('.expand-row');
             if (expandBtn) {
